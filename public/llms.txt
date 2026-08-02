@@ -1,0 +1,26 @@
+# OMG Lashes
+
+> OMG Lashes es una marca ecuatoriana de serum para pestañas y cejas, con productos para fortalecer, nutrir y acompañar el crecimiento natural.
+
+## Sitio oficial
+
+- [Inicio y catálogo](https://testing-storybrand-frontend.bakano.ec/): Productos OMG Lashes, combos, rutina de uso y compra en línea.
+- [Instagram](https://www.instagram.com/omglashes.ec/): Comunidad y novedades de OMG Lashes.
+
+## Productos principales
+
+- OMG Lashes 10 ml: tratamiento para 3 a 5 meses.
+- OMG Lashes 5 ml: tratamiento para 1 a 2 meses.
+- Delineador 2 en 1: serum y delineador.
+- Mascarilla de colágeno: complemento para la rutina de cuidado.
+
+## Información de compra
+
+- Envío gratis en compras desde USD 49.
+- Envío estándar de USD 11 en compras menores a USD 49 dentro de Ecuador.
+- Métodos de pago: PayPhone y transferencia bancaria.
+- Las transferencias requieren comprobante y verificación manual.
+
+## Contacto
+
+- Instagram: [@omglashes.ec](https://www.instagram.com/omglashes.ec/)
