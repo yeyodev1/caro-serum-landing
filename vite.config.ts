@@ -4,6 +4,9 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   plugins: [vue()],
+  server: {
+    allowedHosts: ['testing-storybrand-frontend.bakano.ec'],
+  },
   css: {
     preprocessorOptions: {
       scss: {

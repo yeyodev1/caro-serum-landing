@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { ecuadorCantonsByProvince } from '@/config/ecuadorCantons'
+import { getApiBaseUrl } from '@/config/api'
 
 type Product = { id: string; name: string; detail: string; price: number; size: string; image: string }
 type CartItem = { productId: string; name: string; price: number; qty: number }
 type PaymentMethod = 'payphone' | 'transfer'
 type OrderResponse = {
-  order?: { status?: string; reference?: string; clientTransactionId?: string }
+  order?: { status?: string; reference?: string; clientTransactionId?: string; hasTransferReceipt?: boolean }
   reference?: string
   instructions?: string | string[]
   transfer?: { status?: string; instructions?: string }
@@ -21,7 +23,7 @@ declare global {
   }
 }
 
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8100/api').replace(/\/+$/, '')
+const apiBaseUrl = getApiBaseUrl()
 const cartStorageKey = 'omg-lashes-cart'
 const instagramUrl = 'https://www.instagram.com/omglashes.ec/'
 const serumImage = 'https://res.cloudinary.com/dcoqwxbd/image/upload/f_auto,q_auto,w_900/omglashes/assets/serum-5ml.png'
@@ -49,32 +51,65 @@ const provinces = [
   'Los Rios', 'Manabi', 'Morona Santiago', 'Napo', 'Orellana', 'Pastaza', 'Pichincha', 'Santa Elena', 'Santo Domingo de los Tsachilas',
   'Sucumbios', 'Tungurahua', 'Zamora Chinchipe',
 ]
-const cities = [
-  'Quito', 'Guayaquil', 'Cuenca', 'Ambato', 'Manta', 'Portoviejo', 'Loja', 'Machala', 'Santo Domingo', 'Riobamba', 'Ibarra', 'Esmeraldas',
-  'Quevedo', 'Milagro', 'Babahoyo', 'Latacunga', 'Tulcan', 'Nueva Loja', 'Puyo', 'Tena', 'Azogues', 'Santa Elena', 'Salinas', 'Zamora',
-]
+const citiesByProvince: Record<string, string[]> = {
+  Azuay: ['Cuenca', 'Gualaceo', 'Paute', 'Giron', 'Sigsig'], Bolivar: ['Guaranda', 'San Miguel', 'Chillanes', 'Chimbo'], Canar: ['Azogues', 'Canar', 'La Troncal', 'El Tambo'], Carchi: ['Tulcan', 'San Gabriel', 'El Angel', 'Huaca'], Chimborazo: ['Riobamba', 'Alausi', 'Guamote', 'Guano'], Cotopaxi: ['Latacunga', 'La Mana', 'Pujili', 'Salcedo', 'Saquisili'], 'El Oro': ['Machala', 'Santa Rosa', 'Pasaje', 'Huaquillas', 'Arenillas'], Esmeraldas: ['Esmeraldas', 'Atacames', 'Quininde', 'Muisne'], Galapagos: ['Puerto Baquerizo Moreno', 'Puerto Ayora', 'Puerto Villamil'], Guayas: ['Guayaquil', 'Duran', 'Samborondon', 'Milagro', 'Daule', 'Playas'], Imbabura: ['Ibarra', 'Otavalo', 'Atuntaqui', 'Cotacachi'], Loja: ['Loja', 'Catamayo', 'Cariamanga', 'Macara'], 'Los Rios': ['Babahoyo', 'Quevedo', 'Vinces', 'Buena Fe'], Manabi: ['Portoviejo', 'Manta', 'Chone', 'Jipijapa', 'Montecristi'], 'Morona Santiago': ['Macas', 'Gualaquiza', 'Sucua', 'Limon Indanza'], Napo: ['Tena', 'Archidona', 'El Chaco', 'Quijos'], Orellana: ['Puerto Francisco de Orellana', 'La Joya de los Sachas', 'Loreto', 'Aguarico'], Pastaza: ['Puyo', 'Mera', 'Santa Clara', 'Arajuno'], Pichincha: ['Quito', 'Cayambe', 'Mejia', 'Ruminahui', 'Pedro Moncayo', 'Puerto Quito'], 'Santa Elena': ['Santa Elena', 'La Libertad', 'Salinas'], 'Santo Domingo de los Tsachilas': ['Santo Domingo', 'La Concordia'], Sucumbios: ['Nueva Loja', 'Shushufindi', 'Lago Agrio', 'Cascales'], Tungurahua: ['Ambato', 'Banos de Agua Santa', 'Pelileo', 'Quero'], 'Zamora Chinchipe': ['Zamora', 'Yantzaza', 'El Pangui', 'Zumba'],
+}
+const cities = ref<string[]>([])
 
 const cart = ref<CartItem[]>(loadCart())
 const isCartOpen = ref(false)
 const isCheckoutOpen = ref(false)
+const isCheckoutWizardOpen = ref(false)
+const isPayphoneGatewayOpen = ref(false)
+const checkoutStep = ref<1 | 2 | 3>(1)
+const isLocationPickerOpen = ref(false)
+const locationPickerTarget = ref<'province' | 'city'>('province')
+const locationSearch = ref('')
 const toast = ref('')
 const loadedImages = ref<string[]>([])
 const paymentMethod = ref<PaymentMethod>('payphone')
 const buyer = ref({ firstName: '', lastName: '', email: '', phone: '' })
 const delivery = ref({ country: 'Ecuador', province: '', city: '', address: '', reference: '', mapsUrl: '' })
+watch(() => delivery.value.province, (province) => {
+  cities.value = ecuadorCantonsByProvince[province] || citiesByProvince[province] || []
+  delivery.value.city = ''
+})
 const checkoutError = ref('')
 const isSubmitting = ref(false)
 const isTransferConfirmationOpen = ref(false)
 const transferSuccess = ref<{ reference: string; instructions: string[] } | null>(null)
+const isTransferReceiptOpen = ref(false)
+const selectedTransferReceipt = ref<{ name: string; dataUrl: string } | null>(null)
+const isUploadingReceipt = ref(false)
 const paymentStatus = ref<{ title: string; message: string; paid: boolean } | null>(null)
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined
+let wizardAnimationTimer: ReturnType<typeof setTimeout> | undefined
 
 const itemCount = computed(() => cart.value.reduce((count, item) => count + item.qty, 0))
-const totalCents = computed(() => cart.value.reduce((total, item) => total + item.price * item.qty, 0))
-const shippingRemaining = computed(() => Math.max(0, 4900 - totalCents.value))
-const shippingProgress = computed(() => Math.min(100, totalCents.value / 49))
+const subtotalCents = computed(() => cart.value.reduce((total, item) => total + item.price * item.qty, 0))
+const shippingCents = computed(() => cart.value.length && subtotalCents.value < 4900 ? 1100 : 0)
+const totalCents = computed(() => subtotalCents.value + shippingCents.value)
+const shippingRemaining = computed(() => Math.max(0, 4900 - subtotalCents.value))
+const shippingProgress = computed(() => Math.min(100, subtotalCents.value / 49))
+const locationOptions = computed(() => {
+  const options = locationPickerTarget.value === 'province' ? provinces : cities.value
+  const query = locationSearch.value.trim().toLocaleLowerCase('es-EC')
+  return query ? options.filter((option) => option.toLocaleLowerCase('es-EC').includes(query)) : options
+})
 const formatPrice = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
+const normalizedWhatsApp = computed(() => {
+  const digits = buyer.value.phone.replace(/\D/g, '')
+  const localNumber = /^09\d{8}$/.test(digits) ? digits.slice(1) : digits.replace(/^593/, '')
+  if (/^9\d{8}$/.test(localNumber)) return `+593 ${localNumber.slice(0, 2)} ${localNumber.slice(2, 5)} ${localNumber.slice(5)}`
+  return /^[1-9]\d{6,14}$/.test(digits) ? `+${digits}` : ''
+})
+
+function notify(message: string) {
+  toast.value = message
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => { toast.value = '' }, 3200)
+}
 
 function loadCart(): CartItem[] {
   try {
@@ -90,11 +125,9 @@ function addToCart(product: Product) {
   saveCart()
   isCartOpen.value = true
   void nextTick().then(syncMaskUpsell)
-  toast.value = product.id.startsWith('collagen-mask')
+  notify(product.id.startsWith('collagen-mask')
     ? 'Mascarilla agregada. Tu ritual ya esta completo.'
-    : `${product.name} esta en tu bolsa. Completa tu glow con una mascarilla de colageno.`
-  clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => { toast.value = '' }, 3200)
+    : `${product.name} esta en tu bolsa. Completa tu glow con una mascarilla de colageno.`)
 }
 function changeQuantity(id: string, amount: number) {
   const item = cart.value.find((cartItem) => cartItem.productId === id)
@@ -104,8 +137,8 @@ function changeQuantity(id: string, amount: number) {
   saveCart()
 }
 function removeItem(id: string) { cart.value = cart.value.filter((item) => item.productId !== id); saveCart() }
-function openCheckout() { isCartOpen.value = false; isCheckoutOpen.value = true; checkoutError.value = ''; transferSuccess.value = null }
-function closeOverlays() { isCartOpen.value = false; isCheckoutOpen.value = false; isTransferConfirmationOpen.value = false; paymentStatus.value = null }
+function openCheckout() { isCartOpen.value = false; isCheckoutOpen.value = false; isCheckoutWizardOpen.value = true; checkoutStep.value = 1; checkoutError.value = ''; transferSuccess.value = null; selectedTransferReceipt.value = null; void nextTick().then(() => document.querySelector<HTMLInputElement>('.checkout-wizard input[placeholder="Ej. 0995254965"]')?.setAttribute('pattern', '(?:0?9\\d{8}|\\+?[1-9]\\d{6,14})')) }
+function closeOverlays() { isCartOpen.value = false; isCheckoutOpen.value = false; isCheckoutWizardOpen.value = false; isPayphoneGatewayOpen.value = false; isTransferConfirmationOpen.value = false; isTransferReceiptOpen.value = false; paymentStatus.value = null }
 function markImageLoaded(url: string) { if (!loadedImages.value.includes(url)) loadedImages.value.push(url) }
 function imageLoaded(url: string) { return loadedImages.value.includes(url) }
 function syncMaskUpsell() {
@@ -135,6 +168,12 @@ function getPayPhone(response: OrderResponse) {
 async function loadPayPhoneWidget() {
   if (window.PPaymentButtonBox) return
   await new Promise<void>((resolve, reject) => {
+    if (!document.querySelector('link[href="https://cdn.payphonetodoesposible.com/box/v2.0/payphone-payment-box.css"]')) {
+      const stylesheet = document.createElement('link')
+      stylesheet.rel = 'stylesheet'
+      stylesheet.href = 'https://cdn.payphonetodoesposible.com/box/v2.0/payphone-payment-box.css'
+      document.head.appendChild(stylesheet)
+    }
     const script = document.createElement('script')
     script.type = 'module'
     script.src = 'https://cdn.payphonetodoesposible.com/box/v2.0/payphone-payment-box.js'
@@ -163,13 +202,18 @@ async function createOrder() {
       const instructions = Array.isArray(data.transfer?.instructions)
         ? data.transfer.instructions
         : [data.transfer?.instructions || 'Te contactaremos con los datos de transferencia.']
-      transferSuccess.value = { reference: data.order?.reference || data.reference || 'Pendiente', instructions }
-      cart.value = []
-      saveCart()
-      return
+       transferSuccess.value = { reference: data.order?.reference || data.reference || 'Pendiente', instructions }
+       cart.value = []
+       saveCart()
+       isCheckoutOpen.value = false
+       isCheckoutWizardOpen.value = false
+       isTransferReceiptOpen.value = true
+       return
     }
     const payphone = getPayPhone(data)
     if (!payphone.token || !payphone.storeId || !payphone.clientTransactionId) throw new Error('No recibimos los datos de pago. Intenta nuevamente.')
+    isCheckoutWizardOpen.value = false
+    isPayphoneGatewayOpen.value = true
     await loadPayPhoneWidget()
     await nextTick()
     if (!window.PPaymentButtonBox) throw new Error('El boton de pago no esta disponible.')
@@ -178,8 +222,15 @@ async function createOrder() {
       amount: payphone.amount ?? totalCents.value / 100, amountWithoutTax: payphone.amountWithoutTax ?? totalCents.value / 100,
       currency: payphone.currency || 'USD', reference: payphone.reference || data.order?.reference || 'OMG Lashes',
       lang: 'es', defaultMethod: 'card', timeZone: -5, backgroundColor: '#b86f54',
-    }).render('payphone-button')
-  } catch (error) { checkoutError.value = error instanceof Error ? error.message : 'No pudimos procesar tu pedido.' }
+    }).render('payphone-gateway-button')
+  } catch (error) {
+    if (isPayphoneGatewayOpen.value) {
+      isPayphoneGatewayOpen.value = false
+      isCheckoutWizardOpen.value = true
+      checkoutStep.value = 3
+    }
+    notify(error instanceof Error ? error.message : 'No pudimos procesar tu pedido.')
+  }
   finally { isSubmitting.value = false }
 }
 function submitOrder() {
@@ -196,6 +247,70 @@ function confirmTransferOrder() {
 function returnToPayPhone() {
   paymentMethod.value = 'payphone'
   isTransferConfirmationOpen.value = false
+}
+function openLocationPicker(target: 'province' | 'city' = delivery.value.province ? 'city' : 'province') {
+  locationPickerTarget.value = target
+  locationSearch.value = ''
+  isLocationPickerOpen.value = true
+}
+function chooseLocation(option: string) {
+  if (locationPickerTarget.value === 'province') {
+    delivery.value.province = option
+    delivery.value.city = ''
+    locationPickerTarget.value = 'city'
+    locationSearch.value = ''
+    return
+  }
+  delivery.value.city = option
+  isLocationPickerOpen.value = false
+}
+function syncDeliveryLocationSummary() {
+  const fieldset = document.querySelector<HTMLElement>('.checkout-wizard .delivery-section')
+  if (!fieldset) return
+  fieldset.dataset.location = delivery.value.city
+    ? `ENTREGA EN: ${delivery.value.province} · ${delivery.value.city} · CAMBIAR UBICACIÓN`
+    : delivery.value.province
+      ? `PROVINCIA: ${delivery.value.province} · AHORA ELIGE TU CANTÓN`
+      : 'SELECCIONA PROVINCIA Y CANTÓN CON EL BUSCADOR'
+}
+async function selectTransferReceipt(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+    selectedTransferReceipt.value = null
+    notify('Selecciona una imagen JPG, PNG o WEBP de hasta 5 MB.')
+    return
+  }
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(new Error('No pudimos leer la imagen.'))
+    reader.readAsDataURL(file)
+  })
+  selectedTransferReceipt.value = { name: file.name, dataUrl }
+  notify('Comprobante listo. Confirma el envio cuando estes lista.')
+}
+async function uploadTransferReceipt() {
+  if (!transferSuccess.value || !selectedTransferReceipt.value) {
+    notify('Selecciona el comprobante antes de confirmar.')
+    return
+  }
+  isUploadingReceipt.value = true
+  try {
+    const response = await fetch(`${apiBaseUrl}/orders/${encodeURIComponent(transferSuccess.value.reference)}/transfer-receipt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dataUrl: selectedTransferReceipt.value.dataUrl }),
+    })
+    const data = await response.json() as { message?: string }
+    if (!response.ok) throw new Error(data.message || 'No pudimos enviar el comprobante.')
+    isTransferReceiptOpen.value = false
+    notify('Comprobante enviado. Verificaremos tu pago muy pronto.')
+  } catch (error) {
+    notify(error instanceof Error ? error.message : 'No pudimos enviar el comprobante.')
+  } finally {
+    isUploadingReceipt.value = false
+  }
 }
 async function confirmPayPhoneReturn() {
   const params = new URLSearchParams(window.location.search)
@@ -214,18 +329,34 @@ async function confirmPayPhoneReturn() {
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     if (isTransferConfirmationOpen.value) isTransferConfirmationOpen.value = false
+    else if (isTransferReceiptOpen.value) isTransferReceiptOpen.value = false
     else closeOverlays()
   }
 }
 onMounted(() => { window.addEventListener('keydown', onKeydown); void confirmPayPhoneReturn() })
-onBeforeUnmount(() => { window.removeEventListener('keydown', onKeydown); clearTimeout(toastTimer) })
+onBeforeUnmount(() => { window.removeEventListener('keydown', onKeydown); clearTimeout(toastTimer); clearTimeout(wizardAnimationTimer) })
 watch(isCartOpen, (open) => { if (open) void nextTick().then(syncMaskUpsell) })
+watch(checkoutStep, () => {
+  void nextTick().then(() => {
+    const wizard = document.querySelector<HTMLElement>('.checkout-wizard')
+    if (!wizard) return
+    wizard.classList.remove('is-changing-step')
+    void wizard.offsetWidth
+    wizard.classList.add('is-changing-step')
+    clearTimeout(wizardAnimationTimer)
+    wizardAnimationTimer = setTimeout(() => wizard.classList.remove('is-changing-step'), 380)
+  })
+  if (checkoutStep.value === 2) void nextTick().then(() => { syncDeliveryLocationSummary(); openLocationPicker(delivery.value.province ? 'city' : 'province') })
+})
+watch([() => delivery.value.province, () => delivery.value.city], () => {
+  void nextTick().then(syncDeliveryLocationSummary)
+})
 </script>
 
 <template>
   <main class="home-view">
-    <div class="announcement">ENVIO GRATIS EN COMPRAS DESDE $49 <span>·</span> RESULTADOS VISIBLES EN 28 DIAS</div>
-    <header class="site-header"><a class="logo" href="#inicio" aria-label="OMG Lashes, inicio">OMG <span>LASHES</span></a><nav aria-label="Navegacion principal"><a href="#productos">Productos</a><a href="#rutina">Como usar</a><a href="#combos">Combos</a></nav><button class="cart-trigger" type="button" @click="isCartOpen = true">Bolsa <b>{{ itemCount }}</b></button></header>
+    <button class="announcement" type="button" @click="isCartOpen = true">ENVIO GRATIS EN COMPRAS DESDE $49 <span>·</span> RESULTADOS VISIBLES EN 28 DIAS <b>COMPRAR →</b></button>
+    <header class="site-header"><a class="logo logo-image" href="#inicio" aria-label="OMG Lashes, inicio"><img src="/omg-lashes-logo.png" alt="OMG Lashes, Lashes N Brows Serum"></a><nav aria-label="Navegacion principal"><a href="#productos">Productos</a><a href="#rutina">Como usar</a><a href="#combos">Combos</a></nav><a class="track-order" href="/order-status"><i class="fa-solid fa-box" aria-hidden="true"></i> Ya tengo mi pedido</a><button class="cart-trigger" type="button" @click="isCartOpen = true"><i class="fa-solid fa-bag-shopping" aria-hidden="true"></i> Carrito <b>{{ itemCount }}</b></button></header>
 
     <section id="inicio" class="hero"><div class="hero-copy"><p class="eyebrow"><span></span> LASHES & BROWS SERUM</p><h1>Tu mirada,<br><em>en su mejor</em> version.</h1><p class="hero-description">El serum que fortalece, nutre y acompaña el crecimiento natural de tus cejas y pestanas.</p><div class="hero-actions"><button class="button button-dark" type="button" @click="addToCart(heroProduct)">Quiero mi OMG <span>→</span></button><a class="text-link" href="#rutina">Conoce la rutina <span>↓</span></a></div><div class="hero-proof"><strong>28</strong><span>dias para<br>ver tu progreso</span><i></i><span>Formula acuosa<br>sin aceites</span></div></div><div class="hero-visual"><div class="sunburst"></div><div class="hero-note note-top">BIOTINA<br>+ PANTENOL</div><div class="photo-frame" :class="{ loaded: imageLoaded(eyelinerImage) }"><img :src="eyelinerImage" alt="Delineador OMG Lashes 2 en 1" fetchpriority="high" @load="markImageLoaded(eyelinerImage)"></div><div class="hero-note note-bottom">CRECIMIENTO<br>CON ESTILO</div><div class="circle-stamp">RUTINA<br>DE BELLEZA<br><b>DIARIA</b></div></div></section>
     <section class="marquee" aria-label="Beneficios del producto"><div class="marquee-track"><div class="marquee-group"><span>CEJAS MAS FUERTES</span><b>✦</b><span>PESTAÑAS MÁS LARGAS</span><b>✦</b><span>UNA MIRADA QUE HABLA</span><b>✦</b><span>RESULTADOS VISIBLES EN 28 DIAS</span><b>✦</b></div><div class="marquee-group" aria-hidden="true"><span>CEJAS MAS FUERTES</span><b>✦</b><span>PESTAÑAS MÁS LARGAS</span><b>✦</b><span>UNA MIRADA QUE HABLA</span><b>✦</b><span>RESULTADOS VISIBLES EN 28 DIAS</span><b>✦</b></div></div></section>
@@ -244,6 +375,11 @@ watch(isCartOpen, (open) => { if (open) void nextTick().then(syncMaskUpsell) })
     <Transition name="overlay"><div v-if="isCheckoutOpen" class="overlay" @click.self="isCheckoutOpen = false"><section class="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title"><button class="close" type="button" aria-label="Cerrar checkout" @click="isCheckoutOpen = false">×</button><template v-if="transferSuccess"><p class="eyebrow"><span></span> PEDIDO RECIBIDO</p><h2 id="checkout-title">Pedido pendiente de verificacion.</h2><p class="reference">Referencia: <b>{{ transferSuccess.reference }}</b></p><p class="verification-note">Tu transferencia sera verificada manualmente antes de reservar y enviar tu pedido.</p><p v-for="instruction in transferSuccess.instructions" :key="instruction" class="instruction">{{ instruction }}</p><button class="button button-dark" type="button" @click="isCheckoutOpen = false">Entendido <span>→</span></button></template><template v-else><p class="eyebrow"><span></span> CHECKOUT SEGURO</p><h2 id="checkout-title">Finaliza tu ritual.</h2><p class="checkout-total">Total: <b>{{ formatPrice(totalCents) }}</b></p><form @submit.prevent="submitOrder"><div class="field-grid"><label>Nombres<input v-model.trim="buyer.firstName" required autocomplete="given-name"></label><label>Apellidos<input v-model.trim="buyer.lastName" required autocomplete="family-name"></label></div><label>Correo electronico<input v-model.trim="buyer.email" required type="email" autocomplete="email"></label><label>Telefono<input v-model.trim="buyer.phone" required type="tel" autocomplete="tel"></label><fieldset class="delivery-section"><legend>Entrega obligatoria</legend><label>Pais<select v-model="delivery.country" required><option value="Ecuador">Ecuador</option></select></label><div class="field-grid"><label>Provincia<select v-model="delivery.province" required><option disabled value="">Selecciona tu provincia</option><option v-for="province in provinces" :key="province" :value="province">{{ province }}</option></select></label><label>Ciudad<select v-model="delivery.city" required><option disabled value="">Selecciona tu ciudad</option><option v-for="city in cities" :key="city" :value="city">{{ city }}</option></select></label></div><label>Direccion completa<input v-model.trim="delivery.address" required autocomplete="street-address"></label><label>Referencia para entrega<input v-model.trim="delivery.reference" required></label><label>Enlace de Google Maps<input v-model.trim="delivery.mapsUrl" required type="url" inputmode="url" placeholder="https://maps.google.com/..."></label><small class="maps-help">Comparte el enlace de ubicacion para que podamos encontrar tu direccion facilmente.</small></fieldset><fieldset><legend>Metodo de pago</legend><label class="payment-option payment-option-recommended"><input v-model="paymentMethod" type="radio" value="payphone"><span><b>PayPhone <i>RECOMENDADO</i></b><small>Sin recargos adicionales. Pago aprobado = reserva y envio procesados automaticamente.</small></span></label><label class="payment-option"><input v-model="paymentMethod" type="radio" value="transfer"><span><b>Transferencia bancaria</b><small>Sin recargos. Tu pedido queda pendiente de verificacion manual antes de reservar y enviar.</small></span></label></fieldset><p class="no-fees">El total mostrado es el total a pagar. Sin cargos ocultos.</p><p v-if="checkoutError" class="form-error" role="alert">{{ checkoutError }}</p><button class="button button-dark checkout-button" type="submit" :disabled="isSubmitting">{{ isSubmitting ? 'Creando pedido...' : paymentMethod === 'payphone' ? 'Ir a PayPhone' : 'Confirmar pedido' }} <span>→</span></button></form><div id="payphone-button" aria-live="polite"></div></template></section></div></Transition>
     <Transition name="overlay"><div v-if="paymentStatus" class="overlay" @click.self="paymentStatus = null"><section class="status-modal" role="dialog" aria-modal="true" aria-labelledby="payment-title"><button class="close" type="button" aria-label="Cerrar estado de pago" @click="paymentStatus = null">×</button><p class="eyebrow"><span></span> PAYPHONE</p><h2 id="payment-title">{{ paymentStatus.title }}</h2><p>{{ paymentStatus.message }}</p><button class="button button-dark" type="button" @click="paymentStatus = null">Volver a OMG <span>→</span></button></section></div></Transition>
     <Transition name="overlay"><div v-if="isTransferConfirmationOpen" class="overlay transfer-confirmation-overlay" @click.self="isTransferConfirmationOpen = false"><section class="transfer-confirmation-modal" role="dialog" aria-modal="true" aria-labelledby="transfer-confirmation-title" aria-describedby="transfer-confirmation-description"><button class="close" type="button" aria-label="Cerrar confirmacion de transferencia" @click="isTransferConfirmationOpen = false">×</button><p class="eyebrow"><span></span> TRANSFERENCIA BANCARIA</p><h2 id="transfer-confirmation-title">¿Estas 100% segura?</h2><p id="transfer-confirmation-description">La transferencia pasa por verificacion manual y puede tomar de <strong>2 a 3 dias laborables adicionales</strong> antes de reservar y despachar tu pedido.</p><p class="transfer-no-fees">No hay cargos adicionales por pagar mediante transferencia.</p><div class="transfer-confirmation-actions"><button class="button button-dark" type="button" :disabled="isSubmitting" @click="confirmTransferOrder">Si, continuar con transferencia <span>→</span></button><button class="transfer-back" type="button" @click="returnToPayPhone">Volver a PayPhone</button></div></section></div></Transition>
+    <Transition name="overlay"><div v-if="isTransferReceiptOpen && transferSuccess" class="overlay transfer-receipt-overlay" @click.self="isTransferReceiptOpen = false"><section class="transfer-receipt-modal" role="dialog" aria-modal="true" aria-labelledby="transfer-receipt-title"><button class="close" type="button" aria-label="Cerrar transferencia" @click="isTransferReceiptOpen = false">×</button><p class="eyebrow"><span></span> PAGO POR TRANSFERENCIA</p><h2 id="transfer-receipt-title">Tu pedido esta casi listo.</h2><p class="transfer-intro">Realiza tu transferencia con estos datos y luego confirma el envio de tu comprobante.</p><div class="bank-details"><span>TITULAR</span><b>BEAUTYCOMP SA</b><span>RUC</span><b>0993115347001</b><span>BANCO</span><b>Banco Pichincha</b><span>CUENTA CORRIENTE</span><b>2100185792</b></div><p class="transfer-reference">Referencia de pedido: <b>{{ transferSuccess.reference }}</b></p><label class="receipt-picker"><span>Comprobante de transferencia</span><input type="file" accept="image/jpeg,image/png,image/webp" @change="selectTransferReceipt"><b>{{ selectedTransferReceipt ? selectedTransferReceipt.name : 'Seleccionar imagen' }}</b><small>JPG, PNG o WEBP · Maximo 5 MB</small></label><figure v-if="selectedTransferReceipt" class="receipt-preview"><img :src="selectedTransferReceipt.dataUrl" alt="Previsualizacion del comprobante de transferencia"><figcaption>Previsualizacion: revisa que el comprobante sea legible antes de confirmarlo.</figcaption></figure><button class="button button-dark receipt-confirm" type="button" :disabled="isUploadingReceipt" @click="uploadTransferReceipt">{{ isUploadingReceipt ? 'Enviando comprobante...' : 'Confirmar y enviar comprobante' }} <span>→</span></button><button class="transfer-later" type="button" @click="isTransferReceiptOpen = false">Lo enviare mas tarde</button></section></div></Transition>
+    <Transition name="overlay"><div v-if="isCheckoutWizardOpen" class="overlay checkout-wizard-overlay" @click.self="isCheckoutWizardOpen = false"><section class="checkout-wizard" role="dialog" aria-modal="true" aria-labelledby="wizard-title"><button class="close" type="button" aria-label="Cerrar checkout" @click="isCheckoutWizardOpen = false">×</button><header><p class="eyebrow"><span></span> CHECKOUT SEGURO</p><ol aria-label="Progreso de compra"><li :class="{ active: checkoutStep >= 1 }">1. Contacto</li><li :class="{ active: checkoutStep >= 2 }">2. Entrega</li><li :class="{ active: checkoutStep >= 3 }">3. Pago</li></ol></header><template v-if="checkoutStep === 1"><h2 id="wizard-title">Primero,<br><em>te conocemos.</em></h2><p class="wizard-copy">Usaremos estos datos para confirmar tu pedido y mantenerte al tanto.</p><form @submit.prevent="checkoutStep = 2"><div class="field-grid"><label>Nombres<input v-model.trim="buyer.firstName" required autocomplete="given-name"></label><label>Apellidos<input v-model.trim="buyer.lastName" required autocomplete="family-name"></label></div><label>Correo electronico<input v-model.trim="buyer.email" required type="email" autocomplete="email"></label><label>WhatsApp<input v-model.trim="buyer.phone" required type="tel" inputmode="tel" autocomplete="tel" placeholder="Ej. 0995254965" pattern="(?:0?9\d{8}|(?:\+?593)9\d{8})"></label><p class="phone-help">Escribe tu WhatsApp como lo usas en Ecuador. <span v-if="normalizedWhatsApp">Lo confirmaremos como <b>{{ normalizedWhatsApp }}</b>.</span><span v-else>Ejemplo: 0995254965.</span></p><button class="button button-dark wizard-next" type="submit">Continuar a entrega <span>→</span></button></form></template><template v-else-if="checkoutStep === 2"><h2 id="wizard-title">¿A donde<br><em>lo enviamos?</em></h2><p class="wizard-copy">Elige provincia y luego tu ciudad o canton. Puedes volver si necesitas revisar tus datos.</p><form @submit.prevent="checkoutStep = 3"><fieldset class="delivery-section"><legend>Datos de entrega</legend><label>Pais<select v-model="delivery.country" required><option value="Ecuador">Ecuador</option></select></label><div class="field-grid"><label>Provincia<select v-model="delivery.province" required><option disabled value="">Selecciona tu provincia</option><option v-for="province in provinces" :key="province" :value="province">{{ province }}</option></select></label><label>Ciudad o canton<select v-model="delivery.city" required :disabled="!delivery.province"><option disabled value="">{{ delivery.province ? 'Selecciona tu ciudad o canton' : 'Primero selecciona provincia' }}</option><option v-for="city in cities" :key="city" :value="city">{{ city }}</option></select></label></div><label>Direccion completa<input v-model.trim="delivery.address" required autocomplete="street-address" placeholder="Calle, numero, sector o urbanizacion"></label><label>Referencia para entrega<input v-model.trim="delivery.reference" required placeholder="Ej. junto a la farmacia"></label><label>Enlace de Google Maps<input v-model.trim="delivery.mapsUrl" required type="url" placeholder="https://maps.app.goo.gl/..." inputmode="url"></label><p class="maps-help">Comparte tu ubicacion para encontrar tu direccion facilmente.</p></fieldset><div class="wizard-actions"><button class="wizard-back" type="button" @click="checkoutStep = 1">← Volver a contacto</button><button class="button button-dark" type="submit">Continuar al pago <span>→</span></button></div></form></template><template v-else><h2 id="wizard-title">Revisa y<br><em>finaliza.</em></h2><div class="wizard-total"><span>Total a pagar</span><b>{{ formatPrice(totalCents) }}</b><small>{{ shippingCents ? 'Incluye envio estandar de $11' : 'Envio gratis aplicado' }}</small></div><fieldset class="wizard-payment"><legend>Elige tu metodo de pago</legend><label :class="{ selected: paymentMethod === 'payphone' }"><input v-model="paymentMethod" type="radio" value="payphone"> <b>PayPhone</b><small>Pago inmediato y seguro con tarjeta o saldo PayPhone.</small></label><label :class="{ selected: paymentMethod === 'transfer' }"><input v-model="paymentMethod" type="radio" value="transfer"> <b>Transferencia bancaria</b><small>Sube tu comprobante despues de crear el pedido.</small></label></fieldset><div id="payphone-button" v-show="paymentMethod === 'payphone'"></div><p v-if="checkoutError" class="wizard-error" role="status">{{ checkoutError }}</p><div class="wizard-actions"><button class="wizard-back" type="button" @click="checkoutStep = 2">← Volver a entrega</button><button class="button button-dark" type="button" :disabled="isSubmitting" @click="submitOrder">{{ isSubmitting ? 'Preparando pago...' : paymentMethod === 'payphone' ? 'Continuar a PayPhone' : 'Continuar con transferencia' }} <span>→</span></button></div></template></section></div></Transition>
+    <Transition name="overlay"><div v-if="isPayphoneGatewayOpen" class="overlay payphone-gateway-overlay"><section class="payphone-gateway" role="dialog" aria-modal="true" aria-labelledby="payphone-gateway-title"><p class="eyebrow"><span></span> PASO FINAL · PAGO SEGURO</p><h2 id="payphone-gateway-title">Completa tu<br><em>pago seguro.</em></h2><div class="payphone-gateway-total"><span>Total a pagar</span><b>{{ formatPrice(totalCents) }}</b></div><p class="payphone-gateway-copy">Ingresa los datos directamente en la Cajita de PayPhone. Tu pedido se confirmara al aprobar el pago.</p><div id="payphone-gateway-button"></div><button class="payphone-cancel" type="button" @click="isPayphoneGatewayOpen = false">Cancelar pago</button></section></div></Transition>
+    <Transition name="overlay"><div v-if="isLocationPickerOpen" class="overlay location-picker-overlay"><section class="location-picker" role="dialog" aria-modal="true" aria-labelledby="location-picker-title"><button v-if="locationPickerTarget === 'city'" class="location-picker-back" type="button" @click="openLocationPicker('province')">← Cambiar provincia</button><p class="eyebrow"><span></span> UBICACION DE ENTREGA</p><h2 id="location-picker-title">{{ locationPickerTarget === 'province' ? 'Elige tu provincia.' : 'Elige tu canton.' }}</h2><p class="location-picker-copy">{{ locationPickerTarget === 'province' ? 'Escribe para buscar entre las 24 provincias del Ecuador.' : `Provincia: ${delivery.province}. Escribe para encontrar tu canton.` }}</p><label class="location-search"><span>Buscar {{ locationPickerTarget === 'province' ? 'provincia' : 'canton' }}</span><input v-model.trim="locationSearch" type="search" :placeholder="locationPickerTarget === 'province' ? 'Ej. Guayas' : 'Ej. Guayaquil'" autofocus></label><div class="location-options" role="listbox"><button v-for="option in locationOptions" :key="option" type="button" role="option" @click="chooseLocation(option)">{{ option }} <span>→</span></button><p v-if="!locationOptions.length">No encontramos resultados. Prueba con otro nombre.</p></div><button v-if="delivery.province && delivery.city" class="location-picker-close" type="button" @click="isLocationPickerOpen = false">Usar {{ delivery.province }}, {{ delivery.city }}</button></section></div></Transition>
+    <button v-if="isCheckoutWizardOpen && checkoutStep === 2 && !isLocationPickerOpen" class="location-reopen" type="button" style="bottom:28px" @click="openLocationPicker()">Cambiar provincia o canton</button>
   </main>
 </template>
 
@@ -255,6 +391,27 @@ watch(isCartOpen, (open) => { if (open) void nextTick().then(syncMaskUpsell) })
 :global(.cart-mask-quick-add) { align-items:center; background:var(--ink); border:0; color:var(--cream); display:flex; font:500 10px/1.35 'DM Mono',monospace; justify-content:space-between; letter-spacing:.03em; margin-top:14px; padding:13px 14px; text-align:left; transition:background .2s,transform .2s; width:100%; }:global(.cart-mask-quick-add:hover) { background:var(--copper); transform:translateY(-2px); }:global(.cart-mask-quick-add span) { max-width:145px; }:global(.cart-mask-quick-add strong) { color:var(--pink); font:500 10px/1.35 'DM Mono',monospace; text-align:right; }:global(.cart-mask-quick-add:hover strong) { color:var(--cream); }.shipping::after { content:none; }
 .checkout-modal { width:min(680px,100%); }.checkout-modal form { gap:18px; }.checkout-modal label,.checkout-modal legend { font-size:12px; }.checkout-modal input,.checkout-modal select { font:14px 'DM Mono',monospace; min-height:46px; }.checkout-modal select { background:#fffdfa;border:1px solid var(--line);border-radius:0;color:var(--ink);padding:12px; }.field-grid { display:grid;gap:15px;grid-template-columns:1fr 1fr; }.delivery-section { background:rgba(244,217,213,.38);border-color:var(--blush)!important;gap:15px!important;padding:18px!important; }.delivery-section legend { color:var(--copper);font-weight:500;letter-spacing:.06em; }.maps-help { color:#655d59;font:10px/1.45 'DM Mono',monospace;margin-top:-7px; }.payment-option { border:1px solid transparent;padding:12px;transition:border-color .2s,background .2s; }.payment-option:has(input:checked) { background:rgba(244,217,213,.45);border-color:var(--blush); }.payment-option-recommended { background:rgba(244,217,213,.45);border-color:var(--blush);order:-1; }.payment-option b { align-items:center;display:flex;gap:8px; }.payment-option i { background:var(--copper);color:var(--cream);font:500 8px 'DM Mono',monospace;font-style:normal;letter-spacing:.08em;padding:4px 5px; }.payment-option small { font-size:11px;line-height:1.45; }.no-fees { background:var(--pink);font:500 11px/1.45 'DM Mono',monospace;padding:12px 14px;text-align:center; }.verification-note { color:var(--copper);font:500 13px/1.55 'DM Mono',monospace;margin:0 0 18px; }.checkout-modal #payphone-button { margin-top:18px; }
 .transfer-confirmation-overlay { z-index:20; }.transfer-confirmation-modal { background:var(--cream);box-shadow:0 24px 80px rgba(33,30,29,.25);max-width:550px;padding:54px;position:relative;width:min(550px,100%); }.transfer-confirmation-modal h2 { font-size:clamp(44px,5vw,62px);margin:20px 0 22px; }.transfer-confirmation-modal > p:not(.eyebrow) { font-size:15px;line-height:1.65;max-width:455px; }.transfer-confirmation-modal strong { color:var(--copper);font-weight:500; }.transfer-no-fees { background:var(--pink);font:500 11px/1.5 'DM Mono',monospace;margin-top:20px!important;padding:13px 15px; }.transfer-confirmation-actions { display:grid;gap:14px;margin-top:28px; }.transfer-confirmation-actions .button { justify-content:space-between;width:100%; }.transfer-back { background:transparent;border:0;border-bottom:1px solid var(--ink);font:500 10px 'DM Mono',monospace;justify-self:center;letter-spacing:.08em;padding:5px 0;text-transform:uppercase; }
+.transfer-receipt-overlay { z-index:30; }.transfer-receipt-modal { background:var(--cream);box-shadow:0 24px 80px rgba(33,30,29,.25);max-height:calc(100vh - 36px);max-width:600px;overflow:auto;padding:46px;position:relative;width:min(600px,100%); }.transfer-receipt-modal h2 { font-size:clamp(38px,5vw,58px);margin:18px 0; }.transfer-intro { font-size:14px;line-height:1.6;margin-bottom:22px; }.bank-details { background:var(--ink);color:var(--cream);display:grid;gap:5px;grid-template-columns:1fr 1.4fr;padding:19px; }.bank-details span { color:var(--pink);font:500 9px 'DM Mono',monospace;letter-spacing:.08em; }.bank-details b { font:500 13px 'DM Mono',monospace; }.transfer-reference { font:500 11px/1.5 'DM Mono',monospace;margin:16px 0; }.receipt-picker { border:1px dashed var(--copper);cursor:pointer;display:grid;gap:7px;margin-top:18px;padding:17px; }.receipt-picker span,.receipt-picker small { font:500 10px 'DM Mono',monospace;letter-spacing:.04em; }.receipt-picker input { display:none; }.receipt-picker b { color:var(--copper);font:500 14px 'DM Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }.receipt-confirm { justify-content:space-between;margin-top:17px;width:100%; }.transfer-later { background:transparent;border:0;border-bottom:1px solid var(--ink);display:block;font:500 10px 'DM Mono',monospace;letter-spacing:.08em;margin:16px auto 0;padding:5px;text-transform:uppercase; }
+.receipt-preview { margin:16px 0 0; }.receipt-preview img { border:1px solid var(--line);display:block;max-height:220px;object-fit:contain;width:100%; }.receipt-preview figcaption { color:#655d59;font:10px/1.45 'DM Mono',monospace;margin-top:7px; }
 @media (max-width:750px) { .field-grid { grid-template-columns:1fr; }.checkout-modal { width:min(680px,100%); }.checkout-modal form { gap:16px; } }
 @media (max-width:750px) { .transfer-confirmation-modal { margin:18px;padding:42px 25px; }.transfer-confirmation-modal h2 { font-size:43px; }.transfer-confirmation-modal > p:not(.eyebrow) { font-size:14px; } }
+@media (max-width:750px) { .transfer-receipt-modal { margin:18px;padding:38px 24px; }.bank-details { grid-template-columns:1fr;gap:4px; }.bank-details b { margin-bottom:8px; } }
+.logo-image { display:block;line-height:0;width:clamp(175px,19vw,255px) }.logo-image img { display:block;height:auto;width:100% }
+@media (max-width:750px) { .logo-image { width:185px } }
+.home-view { padding-top:152px }.announcement { border:0;cursor:pointer;left:0;position:fixed;right:0;top:0;width:100%;z-index:50 }.announcement b { border-bottom:1px solid currentColor;font:600 10px 'DM Mono',monospace;margin-left:18px;padding-bottom:2px }.announcement:hover { background:var(--copper) }.site-header { background:var(--cream);left:50%;position:fixed;top:40px;transform:translateX(-50%);width:min(1380px,100%);z-index:49 }.overlay { z-index:100 }.checkout-modal { max-height:min(760px,calc(100dvh - 110px));overflow-y:auto;overscroll-behavior:contain;scrollbar-color:var(--copper) rgba(33,30,29,.08);scrollbar-width:thin }.checkout-modal::-webkit-scrollbar { width:8px }.checkout-modal::-webkit-scrollbar-track { background:rgba(33,30,29,.08) }.checkout-modal::-webkit-scrollbar-thumb { background:var(--copper);border:2px solid var(--cream);border-radius:999px }.checkout-modal::-webkit-scrollbar-thumb:hover { background:var(--ink) }.shipping::before { color:var(--copper);content:'ENVÍO ESTÁNDAR: $11 · GRATIS DESDE $49';display:block;font:600 10px 'DM Mono',monospace;letter-spacing:.05em;margin-bottom:12px }.cart-total::before { color:#655d59;content:'El total incluye el delivery cuando aplica';display:block;font:500 9px 'DM Mono',monospace;letter-spacing:.04em;margin-bottom:7px;text-transform:uppercase }@media (max-width:750px) { .home-view { padding-top:143px }.announcement { font-size:10px;padding:13px 14px }.announcement b { display:block;margin:7px auto 0;width:max-content }.site-header { top:61px }.checkout-modal { max-height:calc(100dvh - 36px) } }
+.checkout-wizard-overlay { z-index:110 }.checkout-wizard { background:var(--cream);box-shadow:0 24px 80px rgba(33,30,29,.3);max-height:min(760px,calc(100dvh - 70px));max-width:670px;overflow-y:auto;padding:48px 52px;position:relative;scrollbar-color:var(--copper) rgba(33,30,29,.08);scrollbar-width:thin;width:min(670px,100%) }.checkout-wizard::-webkit-scrollbar { width:8px }.checkout-wizard::-webkit-scrollbar-track { background:rgba(33,30,29,.08) }.checkout-wizard::-webkit-scrollbar-thumb { background:var(--copper);border:2px solid var(--cream);border-radius:999px }.checkout-wizard header { display:flex;gap:22px;justify-content:space-between;margin-right:35px }.checkout-wizard header ol { display:flex;gap:13px;list-style:none;margin:0;padding:0 }.checkout-wizard header li { color:#a79b96;font:500 9px 'DM Mono',monospace;letter-spacing:.04em }.checkout-wizard header li.active { color:var(--copper) }.checkout-wizard h2 { font-size:clamp(43px,5vw,66px);margin:25px 0 15px }.wizard-copy { font-size:14px;line-height:1.55;margin-bottom:25px;max-width:460px }.checkout-wizard form { display:grid;gap:17px }.checkout-wizard label { display:grid;font:500 11px 'DM Mono',monospace;gap:8px;letter-spacing:.03em }.checkout-wizard input,.checkout-wizard select { background:#fffdfa;border:1px solid var(--line);border-radius:0;color:var(--ink);font:14px 'DM Mono',monospace;min-height:47px;padding:12px;width:100% }.checkout-wizard select:disabled { background:#eee8e3;color:#8d827c }.phone-help { background:var(--pink);font:500 10px/1.55 'DM Mono',monospace;margin:-2px 0 2px;padding:11px 13px }.phone-help b { color:var(--copper) }.wizard-next { justify-content:space-between;margin-top:5px;width:100% }.checkout-wizard .delivery-section { display:grid;gap:16px;margin:0;padding:18px }.checkout-wizard .delivery-section legend { font:500 11px 'DM Mono',monospace }.wizard-actions { align-items:center;display:flex;gap:16px;justify-content:space-between;margin-top:6px }.wizard-actions .button { justify-content:space-between;min-width:250px }.wizard-back { background:transparent;border:0;border-bottom:1px solid var(--ink);font:500 10px 'DM Mono',monospace;letter-spacing:.06em;padding:6px 0;text-transform:uppercase }.wizard-total { background:var(--ink);color:var(--cream);display:grid;gap:5px;margin:23px 0;padding:18px }.wizard-total span,.wizard-total small { color:var(--pink);font:500 10px 'DM Mono',monospace;letter-spacing:.05em;text-transform:uppercase }.wizard-total b { font:500 29px 'DM Mono',monospace }.wizard-payment { border:1px solid var(--line);display:grid;gap:10px;margin:0;padding:16px }.wizard-payment legend { font:500 10px 'DM Mono',monospace;letter-spacing:.05em;text-transform:uppercase }.wizard-payment label { border:1px solid transparent;cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:5px 10px;padding:12px }.wizard-payment label.selected { background:var(--pink);border-color:var(--blush) }.wizard-payment input { align-self:center;min-height:auto;padding:0;width:auto }.wizard-payment b { font-size:13px }.wizard-payment small { font:11px/1.4 'DM Mono',monospace;grid-column:2 }.wizard-error { color:#a83030;font:12px 'DM Mono',monospace;margin:14px 0 0 }.checkout-wizard #payphone-button { margin-top:14px }@media (max-width:750px) { .checkout-wizard { margin:18px;max-height:calc(100dvh - 36px);padding:38px 24px }.checkout-wizard header { align-items:flex-start;display:grid;gap:13px }.checkout-wizard h2 { font-size:45px }.checkout-wizard .field-grid { grid-template-columns:1fr }.wizard-actions { align-items:stretch;flex-direction:column-reverse }.wizard-actions .button { min-width:0;width:100% }.wizard-back { align-self:center } }
+.checkout-wizard.is-changing-step > :not(header):not(.close) { animation:wizard-step-in .34s cubic-bezier(.22,1,.36,1) both }@keyframes wizard-step-in { from { opacity:0;transform:translateY(14px) scale(.985) } to { opacity:1;transform:translateY(0) scale(1) } }.phone-help { font-size:0 }.phone-help::before { content:'Usa tu WhatsApp con código de país (ej. +1, +34, +52). En Ecuador también puedes escribir 09 seguido de ocho dígitos.';font:500 10px/1.55 "DM Mono",monospace;letter-spacing:0 }@media (prefers-reduced-motion:reduce) { .checkout-wizard.is-changing-step > :not(header):not(.close) { animation:none } }
+.payphone-gateway-overlay { z-index:120 }.payphone-gateway { background:var(--cream);box-shadow:0 24px 80px rgba(33,30,29,.3);max-height:min(820px,calc(100dvh - 50px));max-width:620px;overflow-y:auto;padding:48px 52px;scrollbar-color:var(--copper) rgba(33,30,29,.08);scrollbar-width:thin;width:min(620px,100%) }.payphone-gateway::-webkit-scrollbar { width:8px }.payphone-gateway::-webkit-scrollbar-track { background:rgba(33,30,29,.08) }.payphone-gateway::-webkit-scrollbar-thumb { background:var(--copper);border:2px solid var(--cream);border-radius:999px }.payphone-gateway h2 { font-size:clamp(43px,5vw,64px);margin:22px 0 }.payphone-gateway-total { background:var(--ink);color:var(--cream);display:flex;justify-content:space-between;margin:0 0 18px;padding:16px }.payphone-gateway-total span { align-self:center;color:var(--pink);font:500 10px 'DM Mono',monospace;letter-spacing:.05em;text-transform:uppercase }.payphone-gateway-total b { font:500 26px 'DM Mono',monospace }.payphone-gateway-copy { font-size:14px;line-height:1.55;margin-bottom:20px }.payphone-gateway #payphone-gateway-button { min-height:110px }.payphone-cancel { background:transparent;border:0;border-bottom:1px solid var(--ink);display:block;font:500 10px 'DM Mono',monospace;letter-spacing:.06em;margin:24px auto 0;padding:6px 0;text-transform:uppercase }@media (max-width:750px) { .payphone-gateway { margin:18px;max-height:calc(100dvh - 36px);padding:38px 24px }.payphone-gateway h2 { font-size:45px } }
+.checkout-wizard .delivery-section > label:first-of-type,.checkout-wizard .delivery-section > .field-grid { display:none }.checkout-wizard .delivery-section::before { background:var(--pink);color:var(--copper);content:'PROVINCIA Y CANTÓN SELECCIONADOS CON EL BUSCADOR';display:block;font:600 9px "DM Mono",monospace;letter-spacing:.05em;margin:-2px -2px 3px;padding:10px;text-align:center }.location-picker-overlay { z-index:130 }.location-picker { background:var(--cream);box-shadow:0 24px 80px rgba(33,30,29,.32);display:flex;flex-direction:column;max-height:min(720px,calc(100dvh - 32px));max-width:590px;padding:34px 28px;width:min(590px,100%) }.location-picker h2 { font-size:clamp(42px,9vw,62px);margin:18px 0 12px }.location-picker-copy { font-size:14px;line-height:1.55;margin-bottom:18px }.location-picker-back,.location-picker-close { background:transparent;border:0;border-bottom:1px solid var(--ink);font:500 10px "DM Mono",monospace;letter-spacing:.06em;padding:6px 0;text-transform:uppercase;width:max-content }.location-picker-close { color:var(--copper);margin:18px auto 0 }.location-search { display:grid;gap:7px;margin-bottom:14px }.location-search span { font:500 10px "DM Mono",monospace;letter-spacing:.06em;text-transform:uppercase }.location-search input { background:#fffdfa;border:1px solid var(--copper);border-radius:0;font:15px "DM Mono",monospace;min-height:52px;padding:13px;width:100% }.location-options { display:grid;gap:7px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;scrollbar-color:var(--copper) transparent;scrollbar-width:thin }.location-options button { align-items:center;background:#fffdfa;border:1px solid var(--line);display:flex;font:500 13px "DM Mono",monospace;justify-content:space-between;padding:14px;text-align:left;transition:background .18s,color .18s,transform .18s }.location-options button:hover { background:var(--ink);color:var(--cream);transform:translateX(3px) }.location-options button span { color:var(--copper) }.location-options p { color:#756d69;font:12px "DM Mono",monospace;margin:22px 0;text-align:center }@media (max-width:750px) { .location-picker { align-self:end;max-height:calc(100dvh - 18px);max-width:none;min-height:72dvh;padding:31px 22px;width:100% }.location-options { flex:1 }.location-options button { min-height:50px } }
+.location-reopen { background:var(--ink);border:0;color:var(--cream);cursor:pointer;font:500 10px "DM Mono",monospace;left:50%;letter-spacing:.06em;padding:13px 17px;position:fixed;transform:translateX(-50%);z-index:111 }.checkout-wizard .delivery-section > label:first-of-type,.checkout-wizard .delivery-section > .field-grid { display:none }.checkout-wizard .delivery-section::before { background:var(--pink);color:var(--copper);content:'PROVINCIA Y CANTÓN SELECCIONADOS CON EL BUSCADOR';display:block;font:600 9px "DM Mono",monospace;letter-spacing:.05em;margin:-2px -2px 3px;padding:10px;text-align:center }.location-picker-overlay { z-index:130 }.location-picker { background:var(--cream);box-shadow:0 24px 80px rgba(33,30,29,.32);display:flex;flex-direction:column;max-height:min(720px,calc(100dvh - 32px));max-width:590px;padding:34px 28px;width:min(590px,100%) }.location-picker h2 { font-size:clamp(42px,9vw,62px);margin:18px 0 12px }.location-picker-copy { font-size:14px;line-height:1.55;margin-bottom:18px }.location-picker-back,.location-picker-close { background:transparent;border:0;border-bottom:1px solid var(--ink);font:500 10px "DM Mono",monospace;letter-spacing:.06em;padding:6px 0;text-transform:uppercase;width:max-content }.location-picker-close { color:var(--copper);margin:18px auto 0 }.location-search { display:grid;gap:7px;margin-bottom:14px }.location-search span { font:500 10px "DM Mono",monospace;letter-spacing:.06em;text-transform:uppercase }.location-search input { background:#fffdfa;border:1px solid var(--copper);border-radius:0;font:15px "DM Mono",monospace;min-height:52px;padding:13px;width:100% }.location-options { display:grid;gap:7px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;scrollbar-color:var(--copper) transparent;scrollbar-width:thin }.location-options button { align-items:center;background:#fffdfa;border:1px solid var(--line);display:flex;font:500 13px "DM Mono",monospace;justify-content:space-between;padding:14px;text-align:left;transition:background .18s,color .18s,transform .18s }.location-options button:hover { background:var(--ink);color:var(--cream);transform:translateX(3px) }.location-options button span { color:var(--copper) }.location-options p { color:#756d69;font:12px "DM Mono",monospace;margin:22px 0;text-align:center }@media (max-width:750px) { .location-reopen { bottom:22px }.location-picker { align-self:end;max-height:calc(100dvh - 18px);max-width:none;min-height:72dvh;padding:31px 22px;width:100% }.location-options { flex:1 }.location-options button { min-height:50px } }
+</style>
+<style lang="scss" scoped>
+.checkout-wizard .delivery-section::before { content:attr(data-location); cursor:default; font-size:10px; line-height:1.45; }
+.location-reopen { background:var(--copper); bottom:104px !important; box-shadow:0 8px 20px rgba(33,30,29,.2); }
+.location-reopen:hover { background:var(--ink); }
+@media (max-width:750px) { .location-reopen { bottom:84px !important; width:calc(100% - 48px); } }
+</style>
+<style lang="scss" scoped>
+.track-order { border-bottom:1px solid var(--copper);color:var(--copper);font:600 10px 'DM Mono',monospace;letter-spacing:.05em;padding:6px 0;text-decoration:none;text-transform:uppercase }
+@media (max-width:750px) { .track-order { font-size:0 }.track-order::before { content:'PEDIDO';font-size:9px }.site-header { gap:10px }.cart-trigger { font-size:9px } }
 </style>
