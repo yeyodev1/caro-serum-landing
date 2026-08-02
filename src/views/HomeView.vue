@@ -415,3 +415,7 @@ watch([() => delivery.value.province, () => delivery.value.city], () => {
 .track-order { border-bottom:1px solid var(--copper);color:var(--copper);font:600 10px 'DM Mono',monospace;letter-spacing:.05em;padding:6px 0;text-decoration:none;text-transform:uppercase }
 @media (max-width:750px) { .track-order { font-size:0 }.track-order::before { content:'PEDIDO';font-size:9px }.site-header { gap:10px }.cart-trigger { font-size:9px } }
 </style>
+<style lang="scss" scoped>
+.transfer-confirmation-overlay { z-index:140 !important; }
+.transfer-confirmation-modal { position:relative; z-index:141; }
+</style>
