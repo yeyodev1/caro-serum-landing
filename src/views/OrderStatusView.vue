@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { getApiBaseUrl } from '@/config/api'
 
 type Order = { reference: string; buyerEmail?: string; invoice?: { requested: boolean; email?: string }; paymentMethod: 'payphone' | 'transfer'; status: 'awaiting_transfer' | 'pending_payphone' | 'paid' | 'cancelled'; shippingCents: number; totalCents: number; createdAt: string; hasTransferReceipt: boolean; items: { name: string; quantity: number; lineTotalCents: number }[] }
@@ -8,6 +8,7 @@ type Payphone = { token: string; storeId: string; clientTransactionId: string; a
 declare global { interface Window { PPaymentButtonBox?: new (config: Record<string, unknown>) => { render: (id: string) => void } } }
 
 const route = useRoute()
+const router = useRouter()
 const api = getApiBaseUrl()
 const order = ref<Order | null>(null)
 const transaction = ref<{ statusCode: number | null; status: string } | null>(null)
@@ -133,6 +134,7 @@ async function lookupOrders() {
   const response = await fetch(`${api}/orders/lookup`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(contact) }); const data = await json(response)
   foundOrders.value = data.orders || []; lookupMessage.value = response.ok ? (foundOrders.value.length ? '' : 'No encontramos pedidos con esos datos.') : data.message || 'No pudimos buscar los pedidos.'
 }
+function openFoundOrder(reference: string) { foundOrders.value = []; void router.push({ path: '/order-status', query: { reference } }) }
 onMounted(() => {
   const action = document.querySelector<HTMLAnchorElement>('.status-page .header-search')
   if (action) {
@@ -142,11 +144,12 @@ onMounted(() => {
   void loadOrder()
 })
 onBeforeUnmount(() => { document.querySelector('.payphone-direct-support')?.remove(); document.querySelector('.whatsapp-confirm-overlay')?.remove() })
+watch(() => route.fullPath, () => { if (route.path === '/order-status' && route.query.reference) void loadOrder() })
 </script>
 
 <template>
   <main class="status-page"><header><RouterLink class="brand" to="/"><img src="/omg-lashes-logo.png" alt="OMG Lashes"></RouterLink><a class="header-search" href="#buscar">Buscar mi pedido <span>→</span></a></header><section class="hero"><div class="status-copy"><p class="eyebrow">{{ isPayResponse ? 'RESPUESTA DE PAGO' : 'SEGUIMIENTO DE PEDIDO' }}</p><p v-if="isLoading">Estamos revisando tu pedido...</p><template v-else-if="order"><span class="status" :class="{ failed: paymentFailed, paid: order.status === 'paid' }">{{ statusLabel }}</span><h1>{{ paymentFailed ? 'Tu pago no se completó.' : order.status === 'paid' ? 'Tu pago fue confirmado.' : order.paymentMethod === 'transfer' ? 'Tu transferencia está en revisión.' : 'Tu pago está pendiente.' }}</h1><p class="lead">{{ paymentFailed ? 'No se realizó ningún cobro. Tu pedido sigue guardado y puedes reintentar de forma segura.' : `Pedido ${order.reference}` }}</p><button v-if="paymentFailed" class="primary" :disabled="isRetrying" @click="retryPayment">{{ isRetrying ? 'Preparando pago...' : 'Reintentar pago con PayPhone' }} <span>→</span></button><a v-else class="whatsapp" :href="whatsappUrl" target="_blank" rel="noreferrer">Consultar por WhatsApp <span>→</span></a></template><p v-else class="error">{{ message }}</p></div><div class="hero-visual" aria-hidden="true"></div></section><section v-if="order" class="details"><div class="summary"><p><span>Referencia</span><b>{{ order.reference }}</b></p><p><span>Total</span><b>{{ money(order.totalCents) }}</b></p><p><span>Pago</span><b>{{ order.paymentMethod === 'payphone' ? 'PayPhone' : 'Transferencia' }}</b></p></div><div class="items"><h2>Detalles de tu pedido</h2><p v-for="item in order.items" :key="item.name"><span>{{ item.quantity }} × {{ item.name }}</span><b>{{ money(item.lineTotalCents) }}</b></p></div><div class="email-card"><h2>Información por correo</h2><p>El correo original del pedido es <b>{{ order.buyerEmail || 'el correo registrado' }}</b>.</p><p>Si no lo encuentras, revisa spam o reenvíalo.</p><button @click="resendEmail">Reenviar al correo original</button><label>Enviar a otro correo<input v-model.trim="recipientEmail" type="email" placeholder="nuevo@correo.com"></label><label v-if="recipientEmail">Confirma el correo o WhatsApp usado en la compra<input v-model.trim="verificationContact" placeholder="correo o +593..."></label><button v-if="recipientEmail" @click="resendEmail">Enviar a este correo</button><small v-if="resendMessage">{{ resendMessage }}</small></div></section><section id="buscar" class="lookup"><p class="eyebrow">AYUDA RÁPIDA</p><h2>Busca tu pedido.</h2><p>Ingresa el correo o WhatsApp que usaste al comprar.</p><form @submit.prevent="lookupOrders"><input v-model.trim="lookupContact" required placeholder="correo@ejemplo.com o +593..."><button>Buscar</button></form><small v-if="lookupMessage">{{ lookupMessage }}</small><RouterLink v-for="result in foundOrders" :key="result.reference" class="result" :to="{ path: '/order-status', query: { reference: result.reference } }"><span>{{ result.reference }} · {{ new Date(result.createdAt).toLocaleDateString('es-EC') }}</span><b>{{ result.status === 'paid' ? 'PAGADO' : 'VER PEDIDO' }} →</b></RouterLink></section><Transition name="overlay"><div v-if="retryOpen" class="retry-overlay"><section class="retry-card"><button class="close" @click="retryOpen = false">×</button><p class="eyebrow">REINTENTO SEGURO</p><h2>Completa tu pago.</h2><p>Usa PayPhone para finalizar tu pedido.</p><div id="retry-payphone-button"></div></section></div></Transition></main>
-  <section v-if="order?.invoice?.requested" class="invoice-status"><p>FACTURACIÓN</p><h2>Datos recibidos.</h2><span><i class="fa-solid fa-file-invoice"></i> Tu factura se emitirá pronto y llegará a {{ order.invoice.email || 'tu correo registrado' }}.</span></section>
+  <section v-if="foundOrders.length" class="found-orders"><p>RESULTADOS DE BÚSQUEDA</p><h2>Elige tu pedido.</h2><button v-for="foundOrder in foundOrders" :key="foundOrder.reference" type="button" @click="openFoundOrder(foundOrder.reference)"><span><b>{{ foundOrder.reference }}</b><small>{{ new Date(foundOrder.createdAt).toLocaleDateString('es-EC') }}</small></span><strong>{{ money(foundOrder.totalCents) }}</strong><i class="fa-solid fa-arrow-right"></i></button></section><section v-if="order?.invoice?.requested" class="invoice-status"><p>FACTURACIÓN</p><h2>Datos recibidos.</h2><span><i class="fa-solid fa-file-invoice"></i> Tu factura se emitirá pronto y llegará a {{ order.invoice.email || 'tu correo registrado' }}.</span></section>
 </template>
 
 <style scoped lang="scss">
@@ -154,6 +157,7 @@ onBeforeUnmount(() => { document.querySelector('.payphone-direct-support')?.remo
 </style>
 <style scoped lang="scss">
 .invoice-status { background:#f4d9d5;margin:0 auto;max-width:1300px;padding:28px 5vw 42px; }.invoice-status p { color:#b86f54;font:600 10px Arial,sans-serif;letter-spacing:.12em;margin:0 0 8px; }.invoice-status h2 { font:600 30px Georgia,serif;letter-spacing:-.05em;margin:0 0 10px; }.invoice-status span { font:14px/1.5 Arial,sans-serif; }.invoice-status i { color:#b86f54;margin-right:7px; }
+.found-orders { background:#fffdfa;margin:36px auto 0;max-width:1300px;padding:30px 5vw; }.found-orders>p { color:#b86f54;font:600 10px Arial,sans-serif;letter-spacing:.12em;margin:0 0 8px; }.found-orders h2 { font:600 32px Georgia,serif;letter-spacing:-.05em;margin:0 0 18px; }.found-orders button { align-items:center;background:transparent;border:1px solid #e1d6d0;color:#211e1d;cursor:pointer;display:flex;gap:16px;justify-content:space-between;margin-top:10px;padding:16px;text-align:left;width:100%; }.found-orders button:hover { background:#211e1d;color:#fffdfa; }.found-orders button span { display:flex;flex-direction:column;gap:5px;min-width:0; }.found-orders button b { font:600 15px Georgia,serif;overflow-wrap:anywhere; }.found-orders button small { font:11px Arial,sans-serif; }.found-orders button strong { color:#b86f54;font:600 16px Arial,sans-serif; }.found-orders button i { color:#b86f54; }@media (max-width:600px) { .found-orders { margin-top:24px;padding:24px 18px; }.found-orders button { gap:10px;padding:14px; }.found-orders button strong { font-size:13px; } }
 </style>
 <style scoped lang="scss">
 .status-copy.is-loading { min-height:270px; position:relative; }
