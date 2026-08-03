@@ -72,6 +72,7 @@ const loadedImages = ref<string[]>([])
 const paymentMethod = ref<PaymentMethod>('payphone')
 const buyer = ref({ firstName: '', lastName: '', email: '', phone: '' })
 const delivery = ref({ country: 'Ecuador', province: '', city: '', address: '', reference: '', mapsUrl: '' })
+const invoice = ref({ identification: '', firstName: '', lastName: '', email: '', address: '' })
 watch(() => delivery.value.province, (province) => {
   cities.value = ecuadorCantonsByProvince[province] || citiesByProvince[province] || []
   delivery.value.city = ''
@@ -79,6 +80,10 @@ watch(() => delivery.value.province, (province) => {
 const checkoutError = ref('')
 const isSubmitting = ref(false)
 const isTransferConfirmationOpen = ref(false)
+const isInvoiceOpen = ref(false)
+const isInvoiceChoiceOpen = ref(false)
+const invoiceCompleted = ref(false)
+const wantsInvoice = ref<boolean | null>(null)
 const transferSuccess = ref<{ reference: string; instructions: string[]; totalCents: number } | null>(null)
 const isTransferReceiptOpen = ref(false)
 const selectedTransferReceipt = ref<{ name: string; dataUrl: string } | null>(null)
@@ -93,6 +98,8 @@ const itemCount = computed(() => cart.value.reduce((count, item) => count + item
 const subtotalCents = computed(() => cart.value.reduce((total, item) => total + item.price * item.qty, 0))
 const shippingCents = computed(() => cart.value.length && subtotalCents.value < 4900 ? 1100 : 0)
 const totalCents = computed(() => subtotalCents.value + shippingCents.value)
+const requiresInvoice = computed(() => totalCents.value > 5000)
+const shouldCollectInvoice = computed(() => requiresInvoice.value || wantsInvoice.value === true)
 const shippingRemaining = computed(() => Math.max(0, 4900 - subtotalCents.value))
 const shippingProgress = computed(() => Math.min(100, subtotalCents.value / 49))
 const locationOptions = computed(() => {
@@ -140,7 +147,7 @@ function changeQuantity(id: string, amount: number) {
   saveCart()
 }
 function removeItem(id: string) { cart.value = cart.value.filter((item) => item.productId !== id); saveCart() }
-function openCheckout() { isCartOpen.value = false; isCheckoutOpen.value = false; isCheckoutWizardOpen.value = true; checkoutStep.value = 1; checkoutError.value = ''; transferSuccess.value = null; selectedTransferReceipt.value = null; hasConfirmedTransferAmount.value = false; void nextTick().then(() => document.querySelector<HTMLInputElement>('.checkout-wizard input[placeholder="Ej. 0995254965"]')?.setAttribute('pattern', '(?:0?9\\d{8}|\\+?[1-9]\\d{6,14})')) }
+function openCheckout() { isCartOpen.value = false; isCheckoutOpen.value = false; isCheckoutWizardOpen.value = true; checkoutStep.value = 1; checkoutError.value = ''; transferSuccess.value = null; selectedTransferReceipt.value = null; hasConfirmedTransferAmount.value = false; invoiceCompleted.value = false; wantsInvoice.value = null; void nextTick().then(() => document.querySelector<HTMLInputElement>('.checkout-wizard input[placeholder="Ej. 0995254965"]')?.setAttribute('pattern', '(?:0?9\\d{8}|\\+?[1-9]\\d{6,14})')) }
 function closeOverlays() { isCartOpen.value = false; isCheckoutOpen.value = false; isCheckoutWizardOpen.value = false; isPayphoneGatewayOpen.value = false; isTransferConfirmationOpen.value = false; isTransferReceiptOpen.value = false; paymentStatus.value = null }
 function markImageLoaded(url: string) { if (!loadedImages.value.includes(url)) loadedImages.value.push(url) }
 function imageLoaded(url: string) { return loadedImages.value.includes(url) }
@@ -196,6 +203,7 @@ async function createOrder() {
         cart: cart.value,
         buyer: buyer.value,
         delivery: { ...delivery.value, googleMapsUrl: delivery.value.mapsUrl },
+        invoice: shouldCollectInvoice.value ? invoice.value : undefined,
         paymentMethod: paymentMethod.value,
       }),
     })
@@ -250,6 +258,20 @@ function confirmTransferOrder() {
 function returnToPayPhone() {
   paymentMethod.value = 'payphone'
   isTransferConfirmationOpen.value = false
+}
+function openInvoiceOnboarding() {
+  if (!shouldCollectInvoice.value || invoiceCompleted.value) return
+  invoice.value.firstName ||= buyer.value.firstName
+  invoice.value.lastName ||= buyer.value.lastName
+  invoice.value.email ||= buyer.value.email
+  invoice.value.address ||= delivery.value.address
+  isInvoiceOpen.value = true
+}
+function completeInvoiceOnboarding() { invoiceCompleted.value = true; isInvoiceOpen.value = false }
+function chooseInvoice(value: boolean) {
+  wantsInvoice.value = value
+  isInvoiceChoiceOpen.value = false
+  if (value) openInvoiceOnboarding()
 }
 function openLocationPicker(target: 'province' | 'city' = delivery.value.province ? 'city' : 'province') {
   locationPickerTarget.value = target
@@ -355,6 +377,11 @@ watch(checkoutStep, () => {
     wizardAnimationTimer = setTimeout(() => wizard.classList.remove('is-changing-step'), 380)
   })
   if (checkoutStep.value === 2) void nextTick().then(() => { syncDeliveryLocationSummary(); openLocationPicker(delivery.value.province ? 'city' : 'province') })
+  if (checkoutStep.value === 3) void nextTick().then(() => {
+    if (requiresInvoice.value) openInvoiceOnboarding()
+    else if (wantsInvoice.value === null) isInvoiceChoiceOpen.value = true
+    else openInvoiceOnboarding()
+  })
 })
 watch([() => delivery.value.province, () => delivery.value.city], () => {
   void nextTick().then(syncDeliveryLocationSummary)
@@ -387,6 +414,9 @@ watch([() => delivery.value.province, () => delivery.value.city], () => {
     <Transition name="overlay"><div v-if="isCheckoutWizardOpen" class="overlay checkout-wizard-overlay" @click.self="isCheckoutWizardOpen = false"><section class="checkout-wizard" role="dialog" aria-modal="true" aria-labelledby="wizard-title"><button class="close" type="button" aria-label="Cerrar checkout" @click="isCheckoutWizardOpen = false">×</button><header><p class="eyebrow"><span></span> CHECKOUT SEGURO</p><ol aria-label="Progreso de compra"><li :class="{ active: checkoutStep >= 1 }">1. Contacto</li><li :class="{ active: checkoutStep >= 2 }">2. Entrega</li><li :class="{ active: checkoutStep >= 3 }">3. Pago</li></ol></header><template v-if="checkoutStep === 1"><h2 id="wizard-title">Primero,<br><em>te conocemos.</em></h2><p class="wizard-copy">Usaremos estos datos para confirmar tu pedido y mantenerte al tanto.</p><form @submit.prevent="checkoutStep = 2"><div class="field-grid"><label>Nombres<input v-model.trim="buyer.firstName" required autocomplete="given-name"></label><label>Apellidos<input v-model.trim="buyer.lastName" required autocomplete="family-name"></label></div><label>Correo electronico<input v-model.trim="buyer.email" required type="email" autocomplete="email"></label><label>WhatsApp<input v-model.trim="buyer.phone" required type="tel" inputmode="tel" autocomplete="tel" placeholder="Ej. 0995254965" pattern="(?:0?9\d{8}|(?:\+?593)9\d{8})"></label><p class="phone-help">Escribe tu WhatsApp como lo usas en Ecuador. <span v-if="normalizedWhatsApp">Lo confirmaremos como <b>{{ normalizedWhatsApp }}</b>.</span><span v-else>Ejemplo: 0995254965.</span></p><button class="button button-dark wizard-next" type="submit">Continuar a entrega <span>→</span></button></form></template><template v-else-if="checkoutStep === 2"><h2 id="wizard-title">¿A donde<br><em>lo enviamos?</em></h2><p class="wizard-copy">Elige provincia y luego tu ciudad o canton. Puedes volver si necesitas revisar tus datos.</p><form @submit.prevent="checkoutStep = 3"><fieldset class="delivery-section"><legend>Datos de entrega</legend><label>Pais<select v-model="delivery.country" required><option value="Ecuador">Ecuador</option></select></label><div class="field-grid"><label>Provincia<select v-model="delivery.province" required><option disabled value="">Selecciona tu provincia</option><option v-for="province in provinces" :key="province" :value="province">{{ province }}</option></select></label><label>Ciudad o canton<select v-model="delivery.city" required :disabled="!delivery.province"><option disabled value="">{{ delivery.province ? 'Selecciona tu ciudad o canton' : 'Primero selecciona provincia' }}</option><option v-for="city in cities" :key="city" :value="city">{{ city }}</option></select></label></div><label>Direccion completa<input v-model.trim="delivery.address" required autocomplete="street-address" placeholder="Calle, numero, sector o urbanizacion"></label><label>Referencia para entrega<input v-model.trim="delivery.reference" required placeholder="Ej. junto a la farmacia"></label><label>Enlace de Google Maps<input v-model.trim="delivery.mapsUrl" required type="url" placeholder="https://maps.app.goo.gl/..." inputmode="url"></label><p class="maps-help">Comparte tu ubicacion para encontrar tu direccion facilmente.</p></fieldset><div class="wizard-actions"><button class="wizard-back" type="button" @click="checkoutStep = 1">← Volver a contacto</button><button class="button button-dark" type="submit">Continuar al pago <span>→</span></button></div></form></template><template v-else><h2 id="wizard-title">Revisa y<br><em>finaliza.</em></h2><div class="wizard-total"><span>Total a pagar</span><b>{{ formatPrice(totalCents) }}</b><small>{{ shippingCents ? 'Incluye envio estandar de $11' : 'Envio gratis aplicado' }}</small></div><fieldset class="wizard-payment"><legend>Elige tu metodo de pago</legend><label :class="{ selected: paymentMethod === 'payphone' }"><input v-model="paymentMethod" type="radio" value="payphone"> <b>PayPhone</b><small>Pago inmediato y seguro con tarjeta o saldo PayPhone.</small></label><label :class="{ selected: paymentMethod === 'transfer' }"><input v-model="paymentMethod" type="radio" value="transfer"> <b>Transferencia bancaria</b><small>Sube tu comprobante despues de crear el pedido.</small></label></fieldset><div id="payphone-button" v-show="paymentMethod === 'payphone'"></div><p v-if="checkoutError" class="wizard-error" role="status">{{ checkoutError }}</p><div class="wizard-actions"><button class="wizard-back" type="button" @click="checkoutStep = 2">← Volver a entrega</button><button class="button button-dark" type="button" :disabled="isSubmitting" @click="submitOrder">{{ isSubmitting ? 'Preparando pago...' : paymentMethod === 'payphone' ? 'Continuar a PayPhone' : 'Continuar con transferencia' }} <span>→</span></button></div></template></section></div></Transition>
     <Transition name="overlay"><div v-if="isPayphoneGatewayOpen" class="overlay payphone-gateway-overlay"><section class="payphone-gateway" role="dialog" aria-modal="true" aria-labelledby="payphone-gateway-title"><p class="eyebrow"><span></span> PASO FINAL · PAGO SEGURO</p><h2 id="payphone-gateway-title">Completa tu<br><em>pago seguro.</em></h2><div class="payphone-gateway-total"><span>Total a pagar</span><b>{{ formatPrice(totalCents) }}</b></div><p class="payphone-gateway-copy">Ingresa los datos directamente en la Cajita de PayPhone. Tu pedido se confirmara al aprobar el pago.</p><div id="payphone-gateway-button"></div><button class="payphone-cancel" type="button" @click="isPayphoneGatewayOpen = false">Cancelar pago</button></section></div></Transition>
     <Transition name="overlay"><div v-if="isLocationPickerOpen" class="overlay location-picker-overlay"><section class="location-picker" role="dialog" aria-modal="true" aria-labelledby="location-picker-title"><button v-if="locationPickerTarget === 'city'" class="location-picker-back" type="button" @click="openLocationPicker('province')">← Cambiar provincia</button><p class="eyebrow"><span></span> UBICACION DE ENTREGA</p><h2 id="location-picker-title">{{ locationPickerTarget === 'province' ? 'Elige tu provincia.' : 'Elige tu canton.' }}</h2><p class="location-picker-copy">{{ locationPickerTarget === 'province' ? 'Escribe para buscar entre las 24 provincias del Ecuador.' : `Provincia: ${delivery.province}. Escribe para encontrar tu canton.` }}</p><label class="location-search"><span>Buscar {{ locationPickerTarget === 'province' ? 'provincia' : 'canton' }}</span><input v-model.trim="locationSearch" type="search" :placeholder="locationPickerTarget === 'province' ? 'Ej. Guayas' : 'Ej. Guayaquil'" autofocus></label><div class="location-options" role="listbox"><button v-for="option in locationOptions" :key="option" type="button" role="option" @click="chooseLocation(option)">{{ option }} <span>→</span></button><p v-if="!locationOptions.length">No encontramos resultados. Prueba con otro nombre.</p></div><button v-if="delivery.province && delivery.city" class="location-picker-close" type="button" @click="isLocationPickerOpen = false">Usar {{ delivery.province }}, {{ delivery.city }}</button></section></div></Transition>
+    <Transition name="overlay"><div v-if="isInvoiceOpen" class="overlay invoice-overlay"><section class="invoice-onboarding" role="dialog" aria-modal="true" aria-labelledby="invoice-title"><p class="eyebrow"><span></span> DATOS DE FACTURACIÓN</p><p class="invoice-step">{{ requiresInvoice ? 'PEDIDO MAYOR A $50' : 'FACTURA SOLICITADA' }}</p><h2 id="invoice-title">Tus datos,<br><em>en orden.</em></h2><p>Para emitir tu factura necesitamos estos datos. La factura se emitirá pronto y llegará a tu correo.</p><form @submit.prevent="completeInvoiceOnboarding"><label>Cédula o RUC<input v-model.trim="invoice.identification" required inputmode="numeric" minlength="10" maxlength="13" pattern="[0-9]{10}|[0-9]{13}" placeholder="Ej. 0912345678"></label><div class="invoice-fields"><label>Nombres<input v-model.trim="invoice.firstName" required autocomplete="given-name"></label><label>Apellidos<input v-model.trim="invoice.lastName" required autocomplete="family-name"></label></div><label>Correo para factura<input v-model.trim="invoice.email" required type="email" autocomplete="email"></label><label>Dirección de facturación<input v-model.trim="invoice.address" required autocomplete="street-address" placeholder="Calle, número y sector"></label><button class="button button-dark" type="submit">Confirmar datos de facturación <span>→</span></button><button class="invoice-back" type="button" @click="isInvoiceOpen = false; checkoutStep = 2">← Volver a entrega</button></form></section></div></Transition>
+    <Transition name="overlay"><div v-if="isInvoiceChoiceOpen" class="overlay invoice-overlay"><section class="invoice-choice" role="dialog" aria-modal="true" aria-labelledby="invoice-choice-title"><p class="eyebrow"><span></span> FACTURACIÓN</p><h2 id="invoice-choice-title">¿Deseas<br><em>factura?</em></h2><p>Tu compra no supera los $50, pero podemos emitir factura si la necesitas.</p><button class="button button-dark" type="button" @click="chooseInvoice(true)">Sí, ingresar datos de factura <span>→</span></button><button class="invoice-choice-skip" type="button" @click="chooseInvoice(false)">No necesito factura</button></section></div></Transition>
+    <button v-if="isCheckoutWizardOpen && checkoutStep === 3 && shouldCollectInvoice && invoiceCompleted" class="invoice-edit" type="button" @click="isInvoiceOpen = true"><i class="fa-solid fa-pen"></i> Editar datos de facturación</button>
     <button v-if="isCheckoutWizardOpen && checkoutStep === 2 && !isLocationPickerOpen" class="location-reopen" type="button" style="bottom:28px" @click="openLocationPicker()">Cambiar provincia o canton</button>
   </main>
 </template>
@@ -434,4 +464,9 @@ watch([() => delivery.value.province, () => delivery.value.city], () => {
 .amount-confirmation { align-items:flex-start;background:#fffdfa;border:1px solid var(--copper);cursor:pointer;display:flex;gap:11px;font:500 11px/1.5 'DM Mono',monospace;margin-top:16px;padding:14px; }
 .amount-confirmation input { accent-color:var(--copper);height:17px;margin:0;min-height:0;width:17px; }
 .amount-confirmation b { color:var(--copper); }
+</style>
+<style lang="scss" scoped>
+.invoice-overlay { z-index:160; }
+.invoice-onboarding { background:var(--cream);box-shadow:18px 18px 0 var(--ink);max-height:calc(100dvh - 36px);max-width:620px;overflow:auto;padding:46px;position:relative;width:min(620px,calc(100% - 36px)); }
+.invoice-onboarding h2 { font-size:clamp(43px,6vw,68px);margin:12px 0 15px; }.invoice-onboarding>p:not(.eyebrow):not(.invoice-step) { font-size:14px;line-height:1.55;max-width:470px; }.invoice-step { color:var(--copper);font:500 10px 'DM Mono',monospace;letter-spacing:.08em;margin-top:20px; }.invoice-onboarding form { display:flex;flex-direction:column;gap:15px;margin-top:25px; }.invoice-onboarding label { display:flex;flex-direction:column;font:500 11px 'DM Mono',monospace;gap:7px;letter-spacing:.03em; }.invoice-onboarding input { background:#fffdfa;border:1px solid var(--line);font:14px 'DM Mono',monospace;min-height:48px;padding:12px;width:100%; }.invoice-fields { display:flex;gap:14px; }.invoice-fields label { flex:1; }.invoice-onboarding .button { justify-content:space-between;margin-top:6px;width:100%; }.invoice-back { align-self:center;background:transparent;border:0;border-bottom:1px solid var(--ink);font:500 10px 'DM Mono',monospace;letter-spacing:.06em;padding:5px;text-transform:uppercase; }.invoice-choice { background:var(--ink);box-shadow:18px 18px 0 var(--copper);color:var(--cream);max-width:520px;padding:46px;width:min(520px,calc(100% - 36px)); }.invoice-choice .eyebrow { color:var(--pink); }.invoice-choice h2 { font-size:clamp(45px,7vw,66px);margin:18px 0; }.invoice-choice h2 em { color:var(--copper); }.invoice-choice>p:not(.eyebrow) { color:#eaded8;font-size:14px;line-height:1.55;margin-bottom:26px; }.invoice-choice .button { justify-content:space-between;width:100%; }.invoice-choice-skip { background:transparent;border:0;border-bottom:1px solid var(--cream);color:var(--cream);display:block;font:500 10px 'DM Mono',monospace;letter-spacing:.06em;margin:18px auto 0;padding:5px;text-transform:uppercase; }.invoice-edit { background:var(--cream);border:1px solid var(--copper);bottom:28px;color:var(--ink);font:500 10px 'DM Mono',monospace;left:50%;letter-spacing:.04em;padding:12px 15px;position:fixed;transform:translateX(-50%);z-index:112; }@media (max-width:600px) { .invoice-onboarding { box-shadow:9px 9px 0 var(--ink);padding:32px 22px; }.invoice-fields { flex-direction:column; }.invoice-choice { box-shadow:9px 9px 0 var(--copper);padding:34px 24px; }.invoice-edit { bottom:78px;white-space:nowrap; } }
 </style>
