@@ -20,6 +20,12 @@ const routes: Array<RouteRecordRaw> = [
     meta: { title: 'Administracion', requiresAuth: true },
   },
   {
+    path: '/admin/users',
+    name: 'AdminUsers',
+    component: () => import('../views/AdminUsersView.vue'),
+    meta: { title: 'Usuarios administradores', requiresAuth: true },
+  },
+  {
     path: '/pay-response',
     name: 'PayResponse',
     component: () => import('../views/OrderStatusView.vue'),
