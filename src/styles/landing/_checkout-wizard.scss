@@ -1,0 +1,113 @@
+.wizard-actions {
+  align-items:center;
+  display:flex;
+  gap:16px;
+  justify-content:space-between;
+  margin-top:6px;
+}
+.wizard-actions .button {
+  justify-content:space-between;
+  min-width:250px;
+}
+.wizard-back {
+  background:transparent;
+  border:0;
+  border-bottom:1px solid var(--ink);
+  font:500 10px 'DM Mono',monospace;
+  letter-spacing:.06em;
+  padding:6px 0;
+  text-transform:uppercase;
+}
+.wizard-total {
+  background:var(--ink);
+  color:var(--cream);
+  display:grid;
+  gap:5px;
+  margin:23px 0;
+  padding:18px;
+}
+.wizard-total span,.wizard-total small {
+  color:var(--pink);
+  font:500 10px 'DM Mono',monospace;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+.wizard-total b {
+  font:500 29px 'DM Mono',monospace;
+}
+.wizard-payment {
+  border:1px solid var(--line);
+  display:grid;
+  gap:10px;
+  margin:0;
+  padding:16px;
+}
+.wizard-payment legend {
+  font:500 10px 'DM Mono',monospace;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+.wizard-payment label {
+  border:1px solid transparent;
+  cursor:pointer;
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:5px 10px;
+  padding:12px;
+}
+.wizard-payment label.selected {
+  background:var(--pink);
+  border-color:var(--blush);
+}
+.wizard-payment input {
+  align-self:center;
+  min-height:auto;
+  padding:0;
+  width:auto;
+}
+.wizard-payment b {
+  font-size:13px;
+}
+.wizard-payment small {
+  font:11px/1.4 'DM Mono',monospace;
+  grid-column:2;
+}
+.wizard-error {
+  color:#a83030;
+  font:12px 'DM Mono',monospace;
+  margin:14px 0 0;
+}
+@media (max-width:750px) {
+  .checkout-wizard {
+    margin:18px;
+    max-height:calc(100dvh - 36px);
+    padding:38px 24px;
+  }
+  .checkout-wizard header {
+    align-items:flex-start;
+    display:grid;
+    gap:13px;
+  }
+  .checkout-wizard h2 {
+    font-size:45px;
+  }
+  .checkout-wizard .field-grid {
+    grid-template-columns:1fr;
+  }
+  .wizard-actions {
+    align-items:stretch;
+    flex-direction:column-reverse;
+  }
+  .wizard-actions .button {
+    min-width:0;
+    width:100%;
+  }
+  .wizard-back {
+    align-self:center;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .checkout-wizard.is-changing-step > :not(header):not(.close) {
+    animation:none;
+  }
+}
