@@ -1,0 +1,56 @@
+.testimonial {
+  background:var(--ink);
+  color:var(--cream);
+  padding:110px 8vw;
+  text-align:center;
+}
+.testimonial blockquote {
+  font:500 clamp(31px,4.4vw,65px)/1.08 'Playfair Display',serif;
+  letter-spacing:-.045em;
+  margin:25px auto 30px;
+  max-width:1000px;
+}
+.testimonial em {
+  color:var(--blush);
+}
+.testimonial>p:last-child {
+  font:10px 'DM Mono',monospace;
+  letter-spacing:.12em;
+}
+.community-section {
+  padding:90px 5vw;
+  background:#fffdfa;
+}
+.chat-gallery {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:20px;
+  max-width:1380px;
+  margin:auto;
+}
+.chat-card {
+  border:1px solid var(--line);
+  background:var(--cream);
+  overflow:hidden;
+}
+.chat-image {
+  aspect-ratio:3/4;
+  overflow:hidden;
+  background:#eee;
+}
+.chat-image img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.chat-meta {
+  padding:14px 16px;
+}
+.chat-meta p {
+  font:500 12px/1.4 'DM Mono',monospace;
+  margin:0 0 6px;
+}
+.chat-meta span {
+  color:var(--copper);
+  font:500 9px 'DM Mono',monospace;
+}
