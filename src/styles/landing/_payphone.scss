@@ -1,0 +1,76 @@
+.payphone-gateway-overlay {
+  z-index:120;
+}
+.payphone-gateway {
+  background:var(--cream);
+  box-shadow:0 24px 80px rgba(33,30,29,.3);
+  max-height:min(820px,calc(100dvh - 50px));
+  max-width:620px;
+  overflow-y:auto;
+  padding:48px 52px;
+  scrollbar-color:var(--copper) rgba(33,30,29,.08);
+  scrollbar-width:thin;
+  width:min(620px,100%);
+}
+.payphone-gateway::-webkit-scrollbar {
+  width:8px;
+}
+.payphone-gateway::-webkit-scrollbar-track {
+  background:rgba(33,30,29,.08);
+}
+.payphone-gateway::-webkit-scrollbar-thumb {
+  background:var(--copper);
+  border:2px solid var(--cream);
+  border-radius:999px;
+}
+.payphone-gateway h2 {
+  font-size:clamp(43px,5vw,64px);
+  margin:22px 0;
+}
+.payphone-gateway-total {
+  background:var(--ink);
+  color:var(--cream);
+  display:flex;
+  justify-content:space-between;
+  margin:0 0 18px;
+  padding:16px;
+}
+.payphone-gateway-total span {
+  align-self:center;
+  color:var(--pink);
+  font:500 10px 'DM Mono',monospace;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+.payphone-gateway-total b {
+  font:500 26px 'DM Mono',monospace;
+}
+.payphone-gateway-copy {
+  font-size:14px;
+  line-height:1.55;
+  margin-bottom:20px;
+}
+.payphone-gateway #payphone-gateway-button {
+  min-height:110px;
+}
+.payphone-cancel {
+  background:transparent;
+  border:0;
+  border-bottom:1px solid var(--ink);
+  display:block;
+  font:500 10px 'DM Mono',monospace;
+  letter-spacing:.06em;
+  margin:24px auto 0;
+  padding:6px 0;
+  text-transform:uppercase;
+}
+@media (max-width:750px) {
+  .payphone-gateway {
+    margin:18px;
+    max-height:calc(100dvh - 36px);
+    padding:38px 24px;
+  }
+  .payphone-gateway h2 {
+    font-size:45px;
+  }
+}
