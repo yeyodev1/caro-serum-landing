@@ -1,0 +1,117 @@
+.payphone-loading-overlay {
+  align-items:center;
+  background:radial-gradient(circle at center,#4a3027 0,#1D1D1B 68%);
+  color:#fffaf5;
+  display:flex;
+  inset:0;
+  justify-content:center;
+  opacity:1;
+  position:fixed;
+  transition:opacity .24s ease;
+  z-index:9999;
+}
+.payphone-loading-overlay.is-leaving {
+  opacity:0;
+}
+.payphone-loading-card {
+  max-width:430px;
+  padding:30px;
+  text-align:center;
+  width:100%;
+}
+.payphone-loading-orbit {
+  align-items:center;
+  animation:payphone-orbit 1.15s linear infinite;
+  border:3px solid rgba(244,217,213,.2);
+  border-right-color:#c2785a;
+  border-top-color:#fffaf5;
+  border-radius:50%;
+  display:flex;
+  font-size:20px;
+  height:76px;
+  justify-content:center;
+  margin:0 auto 28px;
+  width:76px;
+}
+.payphone-loading-orbit i {
+  animation:payphone-orbit-reverse 1.15s linear infinite;
+  color:#f4d9d5;
+}
+.payphone-loading-card>p {
+  color:#c2785a;
+  font:600 10px Arial,sans-serif;
+  letter-spacing:.14em;
+}
+.payphone-loading-card h1 {
+  font:600 clamp(42px,8vw,62px)/.9 Georgia,serif;
+  letter-spacing:-.07em;
+  margin:15px 0;
+}
+.payphone-loading-card>span {
+  color:#eaded8;
+  font:14px/1.5 Arial,sans-serif;
+}
+.payphone-loading-card ol {
+  display:grid;
+  gap:11px;
+  list-style:none;
+  margin:32px 0 0;
+  padding:0;
+  text-align:left;
+}
+.payphone-loading-card li {
+  color:#a99c97;
+  font:13px Arial,sans-serif;
+  transition:color .25s;
+}
+.payphone-loading-card li i {
+  color:#765d54;
+  margin-right:10px;
+  width:16px;
+}
+.payphone-loading-card li.active {
+  color:#fffaf5;
+}
+.payphone-loading-card li.active i {
+  color:#c2785a;
+}
+@keyframes payphone-orbit {
+to { transform:rotate(360deg); }
+}
+@keyframes payphone-orbit-reverse {
+to { transform:rotate(-360deg); }
+}
+.payphone-direct-support {
+  align-items:center;
+  background:#25d366;
+  border:2px solid #fff;
+  border-radius:999px;
+  bottom:22px;
+  box-shadow:0 12px 30px rgba(33,30,29,.28);
+  color:#102c1b;
+  display:flex;
+  gap:10px;
+  padding:10px 17px 10px 12px;
+  position:fixed;
+  right:22px;
+  text-decoration:none;
+  transition:transform .2s,box-shadow .2s;
+  z-index:500;
+}
+.payphone-direct-support:hover {
+  box-shadow:0 16px 35px rgba(33,30,29,.34);
+  transform:translateY(-3px);
+}
+.payphone-direct-support>i {
+  font-size:26px;
+}
+.payphone-direct-support span {
+  display:grid;
+  gap:2px;
+}
+.payphone-direct-support b {
+  font:700 11px Arial,sans-serif;
+}
+.payphone-direct-support small {
+  font:10px Arial,sans-serif;
+}
