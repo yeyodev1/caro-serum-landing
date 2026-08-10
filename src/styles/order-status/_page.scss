@@ -1,0 +1,172 @@
+.details,.lookup {
+  display:grid;
+  gap:28px;
+  grid-template-columns:1fr 1fr;
+  margin:0 auto;
+  max-width:1100px;
+  padding:60px 0;
+}
+.summary {
+  background:var(--pink);
+  display:grid;
+  gap:14px;
+  grid-column:1/-1;
+  grid-template-columns:repeat(3,1fr);
+  padding:20px;
+}
+.summary p {
+  display:grid;
+  gap:6px;
+  margin:0;
+}
+.summary span {
+  color:var(--copper);
+  font-size:10px;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+}
+.summary b {
+  font-size:14px;
+}
+.items,.email-card {
+  border-top:1px solid #cdbfba;
+  padding-top:20px;
+}
+.items h2,.email-card h2,.lookup h2 {
+  font:600 29px Georgia,serif;
+  margin:0 0 12px;
+}
+.items p {
+  display:flex;
+  font-size:13px;
+  justify-content:space-between;
+  margin:0;
+  padding:11px 0;
+}
+.email-card p,.lookup>p {
+  font-size:13px;
+  line-height:1.5;
+}
+.email-card label {
+  display:grid;
+  font-size:11px;
+  gap:7px;
+  margin-top:14px;
+}
+.email-card input,.lookup input {
+  border:1px solid #bcaeaa;
+  font:14px Arial,sans-serif;
+  padding:12px;
+}
+.email-card button {
+  margin-top:14px;
+}
+.email-card small,.lookup small {
+  color:#a53c32;
+  display:block;
+  font-size:12px;
+  margin-top:10px;
+}
+.lookup {
+  border-top:1px solid #cdbfba;
+  display:block;
+}
+.lookup form {
+  display:flex;
+  gap:10px;
+  margin-top:18px;
+  max-width:600px;
+}
+.lookup input {
+  flex:1;
+}
+.lookup button {
+  margin:0;
+}
+.result {
+  align-items:center;
+  border-top:1px solid #d9ccc7;
+  color:var(--ink);
+  display:flex;
+  font-size:12px;
+  justify-content:space-between;
+  margin-top:16px;
+  max-width:700px;
+  padding:14px 0;
+  text-decoration:none;
+}
+.result b {
+  color:var(--copper);
+}
+.retry-overlay {
+  align-items:center;
+  background:rgba(33,30,29,.7);
+  display:flex;
+  inset:0;
+  justify-content:center;
+  position:fixed;
+  z-index:10;
+}
+.retry-card {
+  background:var(--cream);
+  max-height:calc(100dvh - 36px);
+  max-width:580px;
+  overflow:auto;
+  padding:45px;
+  position:relative;
+  width:min(580px,100%);
+}
+.retry-card .close {
+  background:none;
+  border:0;
+  font-size:35px;
+  position:absolute;
+  right:20px;
+  top:10px;
+}
+.retry-card h2 {
+  font:600 52px/.9 Georgia,serif;
+  margin:18px 0;
+}
+.retry-card p {
+  line-height:1.5;
+}
+.error {
+  color:#f3d3cd;
+}
+@media (max-width:720px) {
+.status-page { padding:20px 0 50px }.status-page>header { padding:0 20px }.brand img { width:165px }.header-search { font-size:9px }.hero { display:flex;flex-direction:column;margin-top:28px }.status-copy { padding:38px 24px }.hero h1 { font-size:51px }.hero-visual { min-height:200px;order:-1 }.details,.lookup { display:block;padding:40px 24px }.summary { grid-template-columns:1fr }.email-card { margin-top:30px }.lookup form { display:grid }.lookup button { justify-content:center }.retry-card { margin:18px;padding:38px 24px }
+}
+.detail-enter-active,.detail-leave-active {
+  transition:opacity .2s ease;
+}
+.detail-enter-from,.detail-leave-to {
+  opacity:0;
+}
+@media (max-width:600px) {
+.order-detail-modal { box-shadow:8px 8px 0 #b86f54;padding:30px 22px; }.order-detail-summary { flex-direction:column;gap:13px; }
+}
+.detail-enter-active,.detail-leave-active {
+  transition:opacity .2s ease;
+}
+.detail-enter-from,.detail-leave-to {
+  opacity:0;
+}
+@media (max-width:600px) {
+.invoice-inline { padding:13px; }.order-detail-modal { box-shadow:8px 8px 0 #b86f54;padding:30px 22px; }.order-detail-modal h2::before { font-size:29px; }.order-detail-summary { flex-direction:column;gap:13px; }
+}
+@keyframes payment-spin {
+to { transform:rotate(360deg); }
+}
+@media (prefers-reduced-motion:reduce) {
+.status-copy.is-loading::after { animation:none; }
+}
+@media (prefers-reduced-motion:reduce) {
+.payphone-loading-orbit,.payphone-loading-orbit i { animation:none; } .payphone-loading-overlay { transition:none; }
+}
+@media (max-width:600px) {
+.payphone-direct-support { bottom:16px; left:16px; right:16px; justify-content:center; }
+}
+@media (max-width:600px) {
+.whatsapp-confirm-card { box-shadow:9px 9px 0 #1D1D1B; padding:32px 22px; } .whatsapp-confirm-card>div:last-child { display:grid; }
+}
