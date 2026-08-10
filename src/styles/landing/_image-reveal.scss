@@ -1,0 +1,11 @@
+// Se carga al final a propósito: estas reglas quitan el desenfoque de entrada y
+// deben ganarle a las declaraciones blur() de cada sección, que tienen la misma
+// especificidad. Si este parcial sube de posición, el hero se queda borroso.
+.loaded img,img.loaded {
+  filter:blur(0);
+  opacity:1;
+}
+.loaded img,.mask-options>img.loaded {
+  opacity:1;
+  transform:scale(1);
+}
