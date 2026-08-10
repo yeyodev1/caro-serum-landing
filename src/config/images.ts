@@ -1,0 +1,33 @@
+// Todas las imágenes salen del Drive de Carolina, subidas a Cloudinary en omglashes/landing-v2.
+// El comentario indica en qué slide del deck aparece cada una.
+//
+// El ancho pedido nunca supera el ancho real del archivo: pedirle a Cloudinary más
+// píxeles de los que tiene la fuente la reescala hacia arriba y se ve borrosa.
+// Junto a cada constante va el tamaño del original como referencia.
+const BRIGHTNESS = 8
+
+export const cld = (id: string, w: number) =>
+  `https://res.cloudinary.com/dcoqwxbd/image/upload/f_auto,q_auto:good,e_brightness:${BRIGHTNESS},w_${w}/omglashes/landing-v2/${id}`
+
+// slide 1 · collage del hero, completo y cuadrado como en el PPT (original 1254x1254).
+// El marco es cuadrado a propósito: así entra el collage entero (las dos fotos y el
+// panel del producto) sin cortar el texto impreso.
+export const heroCollage = cld('efca4834-7822-4a7c-97d9-e9bad1d47391', 1254)
+// slide 5 · 10 ml + 5 ml (original 1254x1254)
+export const comboDobleImage = cld('ChatGPT_Image_6_ago_2026_12_41_38_a.m.', 1254)
+// slide 5 · trío con delineador (original 1536x1024)
+export const comboTrioImage = cld('ChatGPT_Image_6_ago_2026_12_38_26_a.m.', 1536)
+// slide 12 · trío + mascarillas (original 1536x1024)
+export const maskHeroBanner = cld('04e1538a-6e8e-412c-b0e9-f5aa92980061', 1536)
+// slide 4 · productos individuales (originales de cámara, muy por encima de lo necesario)
+export const serum10Image = cld('DSC05487', 1100)
+export const serum5Image = cld('DSC05493', 1100)
+export const eyelinerImage = cld('DSC05482', 1100)
+// slide 6 · regla de progreso (original 1060x1061)
+export const rulerImage = cld('20210713_120611', 1060)
+// slide 10 · mascarilla de colágeno (original 980x1000)
+export const maskProductImage = cld('61zG7fAVAoL._AC_UF1000_1000_QL80_', 980)
+// slide 8 · recorte del PPT (original 752x762, no hay fuente mayor)
+export const howToApplyImage = cld('como-aplicarlo', 752)
+// slide 9 · recorte del PPT (original 857x234; pendiente pedir los logos originales a Carolina)
+export const retailersStrip = cld('retailers-strip', 857)
