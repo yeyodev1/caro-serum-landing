@@ -1,0 +1,50 @@
+.footer-cta-banner {
+  background:var(--ink);
+  color:var(--cream);
+  padding:85px 5vw;
+  text-align:center;
+}
+.banner-content {
+  max-width:850px;
+  margin:auto;
+}
+.banner-eyebrow {
+  justify-content:center;
+  color:var(--pink);
+}
+.banner-content h2 {
+  font:500 clamp(26px,4vw,44px)/1.3 'Playfair Display',serif;
+  margin:18px 0 0;
+}
+.banner-content h2 em {
+  color:var(--pink);
+  font-style:italic;
+}
+.banner-copy {
+  font-size:15px;
+  line-height:1.6;
+  margin:16px auto 32px;
+  max-width:520px;
+  opacity:.85;
+}
+.banner-content .button {
+  background:var(--copper);
+  border-radius:999px;
+  color:var(--cream);
+  display:inline-flex;
+  margin:auto;
+  padding:18px 36px;
+}
+.trust-footer-badges {
+  display:flex;
+  justify-content:center;
+  gap:28px;
+  font:500 12px 'DM Mono',monospace;
+  color:var(--pink);
+  margin-top:28px;
+}
+@media (max-width:750px) {
+  .banner-content .button {
+    width:100%;
+  }
+}
