@@ -1,0 +1,93 @@
+.location-picker-overlay {
+  z-index:130;
+}
+.location-picker {
+  background:var(--cream);
+  box-shadow:0 24px 80px rgba(33,30,29,.32);
+  display:flex;
+  flex-direction:column;
+  max-height:min(720px,calc(100dvh - 32px));
+  max-width:590px;
+  padding:34px 28px;
+  width:min(590px,100%);
+}
+.location-picker h2 {
+  font-size:clamp(42px,9vw,62px);
+  margin:18px 0 12px;
+}
+.location-picker-copy {
+  font-size:14px;
+  line-height:1.55;
+  margin-bottom:18px;
+}
+.location-picker-back,.location-picker-close {
+  background:transparent;
+  border:0;
+  border-bottom:1px solid var(--ink);
+  font:500 10px "DM Mono",monospace;
+  letter-spacing:.06em;
+  padding:6px 0;
+  text-transform:uppercase;
+  width:max-content;
+}
+.location-picker-close {
+  color:var(--copper);
+  margin:18px auto 0;
+}
+.location-reopen {
+  background:var(--ink);
+  border:0;
+  color:var(--cream);
+  cursor:pointer;
+  font:500 10px "DM Mono",monospace;
+  left:50%;
+  letter-spacing:.06em;
+  padding:13px 17px;
+  position:fixed;
+  transform:translateX(-50%);
+  z-index:111;
+}
+.location-picker-overlay {
+  z-index:130;
+}
+.location-picker {
+  background:var(--cream);
+  box-shadow:0 24px 80px rgba(33,30,29,.32);
+  display:flex;
+  flex-direction:column;
+  max-height:min(720px,calc(100dvh - 32px));
+  max-width:590px;
+  padding:34px 28px;
+  width:min(590px,100%);
+}
+.location-picker h2 {
+  font-size:clamp(42px,9vw,62px);
+  margin:18px 0 12px;
+}
+.location-picker-copy {
+  font-size:14px;
+  line-height:1.55;
+  margin-bottom:18px;
+}
+.location-picker-back,.location-picker-close {
+  background:transparent;
+  border:0;
+  border-bottom:1px solid var(--ink);
+  font:500 10px "DM Mono",monospace;
+  letter-spacing:.06em;
+  padding:6px 0;
+  text-transform:uppercase;
+  width:max-content;
+}
+.location-picker-close {
+  color:var(--copper);
+  margin:18px auto 0;
+}
+.location-reopen {
+  background:var(--copper);
+  bottom:104px !important;
+  box-shadow:0 8px 20px rgba(33,30,29,.2);
+}
+.location-reopen:hover {
+  background:var(--ink);
+}
