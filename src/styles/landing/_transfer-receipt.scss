@@ -1,0 +1,132 @@
+.transfer-receipt-overlay {
+  z-index:30;
+}
+.transfer-receipt-modal {
+  background:var(--cream);
+  box-shadow:0 24px 80px rgba(33,30,29,.25);
+  max-height:calc(100vh - 36px);
+  max-width:600px;
+  overflow:auto;
+  padding:46px;
+  position:relative;
+  width:min(600px,100%);
+}
+.transfer-receipt-modal h2 {
+  font-size:clamp(38px,5vw,58px);
+  margin:18px 0;
+}
+.transfer-intro {
+  font-size:14px;
+  line-height:1.6;
+  margin-bottom:22px;
+}
+.bank-details {
+  background:var(--ink);
+  color:var(--cream);
+  display:grid;
+  gap:5px;
+  grid-template-columns:1fr 1.4fr;
+  padding:19px;
+}
+.bank-details span {
+  color:var(--pink);
+  font:500 9px 'DM Mono',monospace;
+  letter-spacing:.08em;
+}
+.bank-details b {
+  font:500 13px 'DM Mono',monospace;
+}
+.transfer-reference {
+  font:500 11px/1.5 'DM Mono',monospace;
+  margin:16px 0;
+}
+.receipt-picker {
+  border:1px dashed var(--copper);
+  cursor:pointer;
+  display:grid;
+  gap:7px;
+  margin-top:18px;
+  padding:17px;
+}
+.receipt-picker span,.receipt-picker small {
+  font:500 10px 'DM Mono',monospace;
+  letter-spacing:.04em;
+}
+.receipt-picker input {
+  display:none;
+}
+.receipt-picker b {
+  color:var(--copper);
+  font:500 14px 'DM Mono',monospace;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.receipt-confirm {
+  justify-content:space-between;
+  margin-top:17px;
+  width:100%;
+}
+.transfer-later {
+  background:transparent;
+  border:0;
+  border-bottom:1px solid var(--ink);
+  display:block;
+  font:500 10px 'DM Mono',monospace;
+  letter-spacing:.08em;
+  margin:16px auto 0;
+  padding:5px;
+  text-transform:uppercase;
+}
+.receipt-preview {
+  margin:16px 0 0;
+}
+.receipt-preview img {
+  border:1px solid var(--line);
+  display:block;
+  max-height:220px;
+  object-fit:contain;
+  width:100%;
+}
+.receipt-preview figcaption {
+  color:#55565A;
+  font:10px/1.45 'DM Mono',monospace;
+  margin-top:7px;
+}
+.transfer-amount {
+  background:var(--pink-soft);
+  display:grid;
+  gap:5px;
+  margin:18px 0;
+  padding:16px;
+  text-align:center;
+}
+.transfer-amount span,.transfer-amount small {
+  font:500 10px 'DM Mono',monospace;
+  letter-spacing:.06em;
+}
+.transfer-amount b {
+  color:var(--copper);
+  font:500 30px 'DM Mono',monospace;
+}
+.amount-confirmation {
+  align-items:flex-start;
+  background:#fffdfa;
+  border:1px solid var(--copper);
+  cursor:pointer;
+  display:flex;
+  gap:11px;
+  font:500 11px/1.5 'DM Mono',monospace;
+  margin-top:16px;
+  padding:14px;
+}
+.amount-confirmation input {
+  accent-color:var(--copper);
+  height:17px;
+  margin:0;
+  min-height:0;
+  width:17px;
+}
+.amount-confirmation b {
+  color:var(--copper);
+}
