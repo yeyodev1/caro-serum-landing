@@ -1,0 +1,41 @@
+.trust-bar {
+  background:#fffdfa;
+  border-bottom:1px solid var(--line);
+  padding:34px 5vw 40px;
+  text-align:center;
+}
+.trust-claim {
+  font:13px/1.6 'DM Mono',monospace;
+  color:var(--gray);
+  margin:0 auto 22px;
+  max-width:840px;
+}
+.trust-claim b {
+  color:var(--ink);
+  font-weight:500;
+}
+.trust-logos {
+  margin:auto;
+  // El original es un recorte del PPT de 857px de ancho: mostrarlo más grande
+  // que esto lo reescala y se ve borroso. Subir sólo con los logos originales.
+  max-width:620px;
+}
+.trust-logos img {
+  display:block;
+  filter:blur(10px);
+  opacity:0;
+  transition:filter .55s,opacity .55s;
+  width:100%;
+}
+.trust-logos.loaded img {
+  filter:blur(0);
+  opacity:1;
+}
+@media (max-width:750px) {
+  .trust-claim {
+    font-size:11px;
+  }
+  .trust-bar {
+    padding:26px 5vw 30px;
+  }
+}
