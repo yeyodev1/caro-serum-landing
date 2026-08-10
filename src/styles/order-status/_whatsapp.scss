@@ -1,0 +1,154 @@
+.primary,.whatsapp,.email-card button,.lookup button {
+  background:var(--copper);
+  border:0;
+  color:#fffaf5;
+  cursor:pointer;
+  display:flex;
+  font:600 11px Arial,sans-serif;
+  justify-content:space-between;
+  letter-spacing:.07em;
+  margin-top:26px;
+  padding:16px 19px;
+  text-transform:uppercase;
+}
+.whatsapp {
+  background:transparent;
+  border:1px solid #fffaf5;
+  text-decoration:none;
+  width:max-content;
+}
+:global(.order-detail-whatsapp),:global(.order-detail-full) {
+  align-items:center!important;
+  border-radius:0;
+  display:flex!important;
+  gap:13px!important;
+  margin-top:14px;
+  padding:15px 16px!important;
+  text-decoration:none!important;
+}
+:global(.order-detail-whatsapp) {
+  background:#e7f8ea!important;
+  border:1px solid #65c979;
+  color:#12331d!important;
+}
+:global(.order-detail-whatsapp)>i:first-child {
+  align-items:center;
+  background:#25d366;
+  border-radius:50%;
+  display:flex;
+  font-size:18px;
+  height:34px;
+  justify-content:center;
+  width:34px;
+}
+:global(.order-detail-whatsapp) span {
+  align-items:flex-start!important;
+  display:flex!important;
+  flex:1;
+  flex-direction:column!important;
+  gap:2px!important;
+  text-align:left!important;
+}
+:global(.order-detail-whatsapp) b {
+  font:700 13px Arial,sans-serif!important;
+}
+:global(.order-detail-whatsapp) small {
+  color:#346341;
+  font:11px Arial,sans-serif!important;
+}
+:global(.order-detail-whatsapp)>i:last-child {
+  color:#16893b;
+  font-size:12px;
+}
+.email-whatsapp-support {
+  align-items:center;
+  background:#25d366 !important;
+  border:0;
+  border-radius:0;
+  color:#102c1b !important;
+  cursor:pointer;
+  display:flex;
+  font:700 12px Arial,sans-serif;
+  gap:9px;
+  letter-spacing:.03em;
+  margin-top:14px !important;
+  padding:15px 17px;
+  text-transform:uppercase;
+  width:100%;
+}
+.email-whatsapp-support i {
+  font-size:18px;
+}
+.whatsapp-confirm-overlay {
+  align-items:center;
+  background:rgba(33,30,29,.72);
+  display:flex;
+  inset:0;
+  justify-content:center;
+  position:fixed;
+  z-index:9999;
+}
+.whatsapp-confirm-card {
+  background:#fbf7f2;
+  box-shadow:18px 18px 0 #1D1D1B;
+  max-width:520px;
+  padding:42px;
+  text-align:center;
+  width:min(520px,calc(100% - 36px));
+}
+.whatsapp-confirm-card>i {
+  color:#25d366;
+  font-size:42px;
+}
+.whatsapp-confirm-card>p {
+  color:#b86f54;
+  font:600 10px Arial,sans-serif;
+  letter-spacing:.12em;
+  margin:14px 0 8px;
+}
+.whatsapp-confirm-card h2 {
+  font:600 clamp(40px,7vw,58px)/.9 Georgia,serif;
+  letter-spacing:-.07em;
+  margin:0 0 16px;
+}
+.whatsapp-confirm-card strong {
+  color:#a23d31;
+  display:block;
+  font:700 13px Arial,sans-serif;
+}
+.whatsapp-confirm-card>span {
+  display:block;
+  font:13px/1.5 Arial,sans-serif;
+  margin:10px auto 18px;
+  max-width:340px;
+}
+.whatsapp-message-preview {
+  background:#e8f7ea;
+  border-left:4px solid #25d366;
+  font:12px/1.5 Arial,sans-serif;
+  padding:14px;
+  text-align:left;
+}
+.whatsapp-confirm-card>div:last-child {
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  margin-top:22px;
+}
+.whatsapp-confirm-card button,.whatsapp-open {
+  border:0;
+  cursor:pointer;
+  font:600 11px Arial,sans-serif;
+  letter-spacing:.06em;
+  padding:14px 16px;
+  text-decoration:none;
+  text-transform:uppercase;
+}
+.whatsapp-cancel {
+  background:#e9dfda;
+  color:#1D1D1B;
+}
+.whatsapp-open {
+  background:#25d366;
+  color:#102c1b;
+}
