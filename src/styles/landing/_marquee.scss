@@ -1,0 +1,19 @@
+.marquee {
+  background:var(--blush);
+  display:flex;
+  gap:27px;
+  overflow:hidden;
+  padding:17px 0;
+  white-space:nowrap;
+}
+.marquee span {
+  font:500 12px 'DM Mono',monospace;
+  letter-spacing:.12em;
+}
+.marquee b {
+  color:var(--cream);
+}
+.marquee {
+  display:block;
+  overflow:hidden;
+}
