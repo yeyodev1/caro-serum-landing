@@ -1,0 +1,125 @@
+.section-heading,.product-grid,.combo-grid {
+  max-width:1280px;
+  margin:auto;
+}
+.combos-section {
+  background:var(--pink-soft);
+  padding:120px 5vw;
+}
+.combo-heading {
+  margin:auto;
+  max-width:1280px;
+}
+.combo-heading h2 {
+  font-size:clamp(50px,5.7vw,80px);
+  margin:20px 0;
+}
+.combo-heading>p:last-child {
+  max-width:330px;
+  line-height:1.55;
+}
+.combo-grid {
+  display:grid;
+  gap:18px;
+  grid-template-columns:repeat(2,1fr);
+  margin-top:52px;
+}
+.combo-grid>:last-child:nth-child(odd) {
+  grid-column:span 2;
+}
+.combo-card {
+  background:var(--cream);
+  padding:35px;
+}
+.combo-card.featured {
+  background:var(--ink);
+  color:var(--cream);
+}
+.combo-card h3 {
+  font:600 clamp(36px,4vw,57px)/.92 'Playfair Display',serif;
+  letter-spacing:-.055em;
+  margin:35px 0 20px;
+  white-space:pre-line;
+}
+.combo-image {
+  aspect-ratio:3/2;
+  background:var(--pink-soft);
+  margin:-35px -35px 28px;
+  overflow:hidden;
+}
+.combo-image img {
+  display:block;
+  filter:blur(12px);
+  height:100%;
+  object-fit:cover;
+  opacity:0;
+  transition:filter .55s,opacity .55s;
+  width:100%;
+}
+.combo-image.loaded img {
+  filter:blur(0);
+  opacity:1;
+}
+.combo-grid>:last-child:nth-child(odd) .combo-image {
+  aspect-ratio:24/7;
+}
+.combo-items {
+  font-size:14px;
+  line-height:1.5;
+}
+.combo-items span,.combo-price strong {
+  color:var(--copper);
+}
+.combo-price {
+  align-items:baseline;
+  display:flex;
+  gap:15px;
+  margin:35px 0 28px;
+}
+.combo-price s {
+  font:12px 'DM Mono',monospace;
+}
+.combo-price strong {
+  font:500 38px 'DM Mono',monospace;
+}
+.combo-card button {
+  background:none;
+  border:0;
+  border-bottom:1px solid currentColor;
+  font:11px 'DM Mono',monospace;
+  padding:0 0 7px;
+}
+.combo-card:not(.featured) button {
+  color:var(--ink);
+}
+.combo-card button span {
+  margin-left:25px;
+}
+.free-shipping {
+  color:var(--copper);
+  font:600 11px 'DM Mono',monospace;
+  display:inline-block;
+  margin-top:4px;
+}
+.individual-products {
+  margin-top:80px;
+  padding-top:60px;
+  border-top:1px solid var(--line);
+}
+@media (max-width:750px) {
+  .product-grid,.combo-grid {
+    grid-template-columns:1fr;
+  }
+  .products-section,.combos-section {
+    padding:80px 6vw;
+  }
+}
+.combo-lead {
+  font-size:15px;
+  margin-top:10px;
+}
+.combo-subheading {
+  font:600 clamp(24px,2.6vw,34px)/1.1 'Playfair Display',serif;
+  letter-spacing:-.03em;
+  margin:30px 0 10px;
+}
