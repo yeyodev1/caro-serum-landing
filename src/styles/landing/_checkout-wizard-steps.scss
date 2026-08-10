@@ -1,0 +1,149 @@
+.checkout-wizard {
+  background:var(--cream);
+  box-shadow:0 24px 80px rgba(33,30,29,.3);
+  max-height:min(760px,calc(100dvh - 70px));
+  max-width:670px;
+  overflow-y:auto;
+  padding:48px 52px;
+  position:relative;
+  scrollbar-color:var(--copper) rgba(33,30,29,.08);
+  scrollbar-width:thin;
+  width:min(670px,100%);
+}
+.checkout-wizard::-webkit-scrollbar {
+  width:8px;
+}
+.checkout-wizard::-webkit-scrollbar-track {
+  background:rgba(33,30,29,.08);
+}
+.checkout-wizard::-webkit-scrollbar-thumb {
+  background:var(--copper);
+  border:2px solid var(--cream);
+  border-radius:999px;
+}
+.checkout-wizard header {
+  display:flex;
+  gap:22px;
+  justify-content:space-between;
+  margin-right:35px;
+}
+.checkout-wizard header ol {
+  display:flex;
+  gap:13px;
+  list-style:none;
+  margin:0;
+  padding:0;
+}
+.checkout-wizard header li {
+  color:#999A9C;
+  font:500 9px 'DM Mono',monospace;
+  letter-spacing:.04em;
+}
+.checkout-wizard header li.active {
+  color:var(--copper);
+}
+.checkout-wizard h2 {
+  font-size:clamp(43px,5vw,66px);
+  margin:25px 0 15px;
+}
+.wizard-copy {
+  font-size:14px;
+  line-height:1.55;
+  margin-bottom:25px;
+  max-width:460px;
+}
+.checkout-wizard form {
+  display:grid;
+  gap:17px;
+}
+.checkout-wizard label {
+  display:grid;
+  font:500 11px 'DM Mono',monospace;
+  gap:8px;
+  letter-spacing:.03em;
+}
+.checkout-wizard input,.checkout-wizard select {
+  background:#fffdfa;
+  border:1px solid var(--line);
+  border-radius:0;
+  color:var(--ink);
+  font:14px 'DM Mono',monospace;
+  min-height:47px;
+  padding:12px;
+  width:100%;
+}
+.checkout-wizard select:disabled {
+  background:#eee8e3;
+  color:#77787B;
+}
+.phone-help {
+  background:var(--pink-soft);
+  font:500 10px/1.55 'DM Mono',monospace;
+  margin:-2px 0 2px;
+  padding:11px 13px;
+}
+.phone-help b {
+  color:var(--copper);
+}
+.wizard-next {
+  justify-content:space-between;
+  margin-top:5px;
+  width:100%;
+}
+.checkout-wizard .delivery-section {
+  display:grid;
+  gap:16px;
+  margin:0;
+  padding:18px;
+}
+.checkout-wizard .delivery-section legend {
+  font:500 11px 'DM Mono',monospace;
+}
+.checkout-wizard #payphone-button {
+  margin-top:14px;
+}
+.checkout-wizard.is-changing-step > :not(header):not(.close) {
+  animation:wizard-step-in .34s cubic-bezier(.22,1,.36,1) both;
+}
+.phone-help {
+  font-size:0;
+}
+.phone-help::before {
+  content:'Usa tu WhatsApp con código de país (ej. +1, +34, +52). En Ecuador también puedes escribir 09 seguido de ocho dígitos.';
+  font:500 10px/1.55 "DM Mono",monospace;
+  letter-spacing:0;
+}
+.checkout-wizard .delivery-section > label:first-of-type,.checkout-wizard .delivery-section > .field-grid {
+  display:none;
+}
+.checkout-wizard .delivery-section::before {
+  background:var(--pink);
+  color:var(--copper);
+  content:'PROVINCIA Y CANTÓN SELECCIONADOS CON EL BUSCADOR';
+  display:block;
+  font:600 9px "DM Mono",monospace;
+  letter-spacing:.05em;
+  margin:-2px -2px 3px;
+  padding:10px;
+  text-align:center;
+}
+.checkout-wizard .delivery-section > label:first-of-type,.checkout-wizard .delivery-section > .field-grid {
+  display:none;
+}
+.checkout-wizard .delivery-section::before {
+  background:var(--pink);
+  color:var(--copper);
+  content:'PROVINCIA Y CANTÓN SELECCIONADOS CON EL BUSCADOR';
+  display:block;
+  font:600 9px "DM Mono",monospace;
+  letter-spacing:.05em;
+  margin:-2px -2px 3px;
+  padding:10px;
+  text-align:center;
+}
+.checkout-wizard .delivery-section::before {
+  content:attr(data-location);
+  cursor:default;
+  font-size:10px;
+  line-height:1.45;
+}
