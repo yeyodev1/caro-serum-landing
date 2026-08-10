@@ -1,0 +1,62 @@
+.decision-cards {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(310px,1fr));
+  gap:28px;
+  max-width:920px;
+  margin:45px auto 0;
+}
+.decision-card {
+  background:#fffdfa;
+  border:1px solid var(--line);
+  padding:40px 32px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  position:relative;
+}
+.decision-card.featured {
+  border:2px solid var(--copper);
+  background:#fff8f5;
+}
+.decision-card .badge {
+  display:inline-block;
+  background:var(--pink);
+  color:var(--copper);
+  font:600 9px 'DM Mono',monospace;
+  padding:5px 10px;
+  margin-bottom:16px;
+  text-transform:uppercase;
+}
+.decision-card .badge.best {
+  background:var(--copper);
+  color:var(--cream);
+}
+.decision-card h3 {
+  font:600 26px 'Playfair Display',serif;
+  margin:0 0 10px;
+}
+.decision-card .desc {
+  font-size:13px;
+  color:#55565A;
+  margin-bottom:20px;
+}
+.decision-card .price {
+  font:600 32px 'DM Mono',monospace;
+  color:var(--ink);
+  margin-bottom:24px;
+}
+.decision-card .price s {
+  font-size:18px;
+  color:#999A9C;
+  margin-right:8px;
+}
+.decision-card .button {
+  justify-content:space-between;
+  width:100%;
+}
+@media (max-width:750px) {
+  .decision-cards {
+    grid-template-columns:1fr;
+  }
+}
