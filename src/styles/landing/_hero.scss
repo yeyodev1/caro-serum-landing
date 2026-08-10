@@ -1,0 +1,124 @@
+.hero {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  min-height:650px;
+  max-width:1380px;
+  margin:auto;
+  padding:45px 5vw 95px;
+}
+.hero h1 {
+  margin:25px 0 24px;
+}
+// Cuadrado, como en el slide 1 del PPT: el collage se ve completo, sin recorte.
+.photo-frame {
+  aspect-ratio:1/1;
+  align-self:center;
+  height:auto;
+  overflow:hidden;
+  position:absolute;
+  right:3%;
+  top:50%;
+  transform:translateY(-50%);
+  width:86%;
+}
+.photo-frame img,.intro-visual img,.product-image img,.mask-image img,.mask-options>img {
+  filter:blur(12px);
+  height:100%;
+  object-fit:cover;
+  opacity:0;
+  transition:filter .55s,opacity .55s;
+  width:100%;
+}
+.sunburst {
+  background:repeating-conic-gradient(from 22deg,var(--pink) 0deg 6deg,transparent 6deg 17deg);
+  border-radius:50%;
+  height:72%;
+  position:absolute;
+  right:-14%;
+  top:13%;
+  width:72%;
+}
+// Los rótulos verticales van por fuera del marco cuadrado, no encima de la foto.
+.note-top {
+  left:-6%;
+  top:18%;
+  transform:rotate(-90deg);
+  transform-origin:center;
+}
+.note-bottom {
+  bottom:14%;
+  right:-8%;
+  transform:rotate(90deg);
+  transform-origin:center;
+}
+.circle-stamp {
+  align-items:center;
+  background:var(--blush);
+  border-radius:50%;
+  bottom:2%;
+  color:#fff;
+  display:flex;
+  font:10px/1.28 'DM Mono',monospace;
+  height:116px;
+  justify-content:center;
+  left:-5%;
+  letter-spacing:.08em;
+  position:absolute;
+  text-align:center;
+  transform:rotate(-13deg);
+  width:116px;
+  z-index:3;
+}
+.circle-stamp b {
+  color:var(--ink);
+  font-weight:500;
+}
+.photo-frame:not(.loaded),.intro-visual:not(.loaded),.product-image:not(.loaded),.mask-image:not(.loaded),.mask-options>img:not(.loaded) {
+  background:linear-gradient(110deg,rgba(255,255,255,.08) 30%,rgba(255,255,255,.52) 45%,rgba(255,255,255,.08) 60%),var(--pink-soft);
+  background-size:240% 100%;
+  animation:image-shimmer 1.5s ease-in-out infinite;
+}
+.photo-frame:not(.loaded) img,.intro-visual:not(.loaded) img,.product-image:not(.loaded) img,.mask-image:not(.loaded) img,.mask-options>img:not(.loaded) {
+  opacity:0;
+}
+.photo-frame img,.intro-visual img,.product-image img,.mask-image img,.mask-options>img {
+  transition:opacity .55s ease,transform .7s ease;
+}
+@media (prefers-reduced-motion:reduce) {
+  .marquee-track,.photo-frame:not(.loaded),.intro-visual:not(.loaded),.product-image:not(.loaded),.mask-image:not(.loaded),.mask-options>img:not(.loaded) {
+    animation:none;
+  }
+}
+@media (max-width:750px) {
+  .hero {
+    display:block;
+    min-height:0;
+    padding-top:35px;
+  }
+  .hero h1 {
+    font-size:clamp(54px,16vw,78px);
+  }
+  // En móvil el marco cuadrado ocupa casi todo el ancho: los rótulos verticales
+  // ya no caben fuera y se montarían sobre la foto, así que se ocultan.
+  .photo-frame {
+    position:relative;
+    right:auto;
+    top:auto;
+    transform:none;
+    width:100%;
+  }
+  .sunburst {
+    right:-8%;
+  }
+  .note-top,
+  .note-bottom {
+    display:none;
+  }
+  .circle-stamp {
+    bottom:-24px;
+    height:95px;
+    left:auto;
+    right:4%;
+    width:95px;
+  }
+}
