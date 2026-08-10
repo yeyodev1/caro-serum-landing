@@ -1,0 +1,32 @@
+.quote-mark {
+  color:var(--blush);
+  font:90px/.6 'Playfair Display',serif;
+}
+.quote-banner {
+  background:var(--ink);
+  color:var(--cream);
+  padding:75px 5vw;
+  text-align:center;
+}
+.quote-container {
+  max-width:920px;
+  margin:auto;
+}
+.quote-text {
+  font:500 clamp(22px,3.8vw,42px)/1.35 'Playfair Display',serif;
+  margin:0;
+}
+.quote-text em {
+  color:var(--pink);
+  font-style:italic;
+}
+.quote-card {
+  background:var(--cream);
+  border:1px solid var(--line);
+  padding:28px 24px;
+  text-align:center;
+}
+.quote-card p {
+  font:500 15px/1.5 'Playfair Display',serif;
+  margin:0 0 12px;
+}
