@@ -1,0 +1,79 @@
+.transfer-confirmation-overlay {
+  z-index:20;
+}
+.transfer-confirmation-modal {
+  background:var(--cream);
+  box-shadow:0 24px 80px rgba(33,30,29,.25);
+  max-width:550px;
+  padding:54px;
+  position:relative;
+  width:min(550px,100%);
+}
+.transfer-confirmation-modal h2 {
+  font-size:clamp(44px,5vw,62px);
+  margin:20px 0 22px;
+}
+.transfer-confirmation-modal > p:not(.eyebrow) {
+  font-size:15px;
+  line-height:1.65;
+  max-width:455px;
+}
+.transfer-confirmation-modal strong {
+  color:var(--copper);
+  font-weight:500;
+}
+.transfer-no-fees {
+  background:var(--pink-soft);
+  font:500 11px/1.5 'DM Mono',monospace;
+  margin-top:20px!important;
+  padding:13px 15px;
+}
+.transfer-confirmation-actions {
+  display:grid;
+  gap:14px;
+  margin-top:28px;
+}
+.transfer-confirmation-actions .button {
+  justify-content:space-between;
+  width:100%;
+}
+.transfer-back {
+  background:transparent;
+  border:0;
+  border-bottom:1px solid var(--ink);
+  font:500 10px 'DM Mono',monospace;
+  justify-self:center;
+  letter-spacing:.08em;
+  padding:5px 0;
+  text-transform:uppercase;
+}
+.transfer-confirmation-overlay {
+  z-index:140 !important;
+}
+.transfer-confirmation-modal {
+  position:relative;
+  z-index:141;
+}
+@media (max-width:750px) {
+  .transfer-confirmation-modal {
+    margin:18px;
+    padding:42px 25px;
+  }
+  .transfer-confirmation-modal h2 {
+    font-size:43px;
+  }
+  .transfer-confirmation-modal > p:not(.eyebrow) {
+    font-size:14px;
+  }
+  .transfer-receipt-modal {
+    margin:18px;
+    padding:38px 24px;
+  }
+  .bank-details {
+    grid-template-columns:1fr;
+    gap:4px;
+  }
+  .bank-details b {
+    margin-bottom:8px;
+  }
+}
