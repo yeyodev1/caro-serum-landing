@@ -1,0 +1,19 @@
+// Paleta del manual de marca (pág. 5 "CROMÁTICA"):
+//   negro #1D1D1B · Pantone 488 C #F1B9A9 · Pantone Cool Gray 111 C #55565A
+// --pink-soft es el tinte 40% del salmón, para superficies grandes.
+// --copper y --cream se conservan por decisión del cliente.
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap');
+
+.home-view {
+  --ink: #1D1D1B;
+  --pink: #F1B9A9;
+  --pink-soft: #F9E3DC;
+  --blush: #F1B9A9;
+  --gray: #55565A;
+  --cream: #fbf7f2;
+  --copper: #b86f54;
+  --line: rgba(33, 30, 29, .18);
+  background: var(--cream);
+  color: var(--ink);
+  overflow: hidden;
+}
