@@ -1,0 +1,52 @@
+.eyebrow {
+  align-items:center;
+  display:flex;
+  font:500 10px 'DM Mono',monospace;
+  gap:10px;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+.eyebrow span {
+  background:var(--copper);
+  border-radius:50%;
+  height:7px;
+  width:7px;
+}
+h1,h2 {
+  font:600 clamp(52px,6.3vw,96px)/.94 'Playfair Display',serif;
+  letter-spacing:-.065em;
+}
+h1 em,h2 em {
+  color:var(--copper);
+  font-weight:500;
+}
+.section-heading {
+  display:grid;
+  grid-template-columns:1fr auto;
+}
+.section-heading .eyebrow {
+  grid-column:span 2;
+}
+.section-heading h2 {
+  font-size:clamp(48px,5.5vw,78px);
+  margin-top:22px;
+}
+.section-heading a {
+  align-self:end;
+  border-bottom:1px solid var(--blush);
+  color:var(--blush);
+  font:11px 'DM Mono',monospace;
+  height:max-content;
+  padding-bottom:6px;
+}
+.centered {
+  text-align:center;
+}
+.centered .eyebrow {
+  justify-content:center;
+}
+.subheading {
+  font-size:15px;
+  color:#55565A;
+  margin-top:12px;
+}
