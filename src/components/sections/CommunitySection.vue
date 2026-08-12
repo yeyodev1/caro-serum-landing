@@ -14,32 +14,16 @@ const { imageLoaded, markImageLoaded } = useImageLoad()
       <p class="subheading">Testimonios y capturas reales de clientas.</p>
     </div>
 
-    <div class="quotes-highlight">
-      <div class="quote-card">
-        <div class="stars">★★★★★</div>
-        <p>“Se siente ligero y no deja sensación grasosa.”</p>
-        <span class="verified">✓ Compra verificada</span>
-      </div>
-      <div class="quote-card">
-        <div class="stars">★★★★★</div>
-        <p>“La regla me ayudó a ser constante.”</p>
-        <span class="verified">✓ Compra verificada</span>
-      </div>
-      <div class="quote-card">
-        <div class="stars">★★★★★</div>
-        <p>“Lo uso también en mis cejas.”</p>
-        <span class="verified">✓ Compra verificada</span>
-      </div>
-    </div>
-
+    <!-- La estrella y el comentario van debajo de cada foto, no en una fila aparte. -->
     <div class="chat-gallery">
       <div v-for="(chat, i) in chatTestimonials" :key="i" class="chat-card">
         <div class="chat-image" :class="{ loaded: imageLoaded(chat.url) }">
           <img :src="chat.url" :alt="chat.quote" loading="lazy" @load="markImageLoaded(chat.url)">
         </div>
         <div class="chat-meta">
+          <div class="stars">★★★★★</div>
           <p>{{ chat.quote }}</p>
-          <span>★★★★★ {{ chat.author }}</span>
+          <span class="verified">✓ {{ chat.author }}</span>
         </div>
       </div>
     </div>
