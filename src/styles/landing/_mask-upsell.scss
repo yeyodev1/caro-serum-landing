@@ -17,24 +17,34 @@
 .upsell h2 em {
   color:var(--pink);
 }
+// Era un cuadro de 180px: la foto del pack se veía como miniatura recortada.
 .mask-image {
-  border-radius:100px 100px 0 0;
-  height:180px;
+  aspect-ratio:3/2;
+  background:rgba(255,255,255,.18);
+  border-radius:120px 120px 0 0;
   margin-bottom:28px;
   overflow:hidden;
-  width:180px;
+  width:100%;
+}
+.mask-image img {
+  display:block;
+  height:100%;
+  object-fit:contain;
+  width:100%;
 }
 .mask-options {
   border:1px solid rgba(255,255,255,.55);
   padding:28px;
   position:relative;
 }
+// Sin `mix-blend-mode:multiply`: sobre el cobre de la sección el fondo blanco
+// de la foto se fundía y la mascarilla se veía transparente.
 .mask-options>img {
-  height:150px;
-  margin:-70px 0 14px 58%;
-  mix-blend-mode:multiply;
+  display:block;
+  height:170px;
+  margin:-70px 0 14px auto;
   object-fit:contain;
-  width:42%;
+  width:46%;
 }
 .mask-options>p {
   font:10px 'DM Mono',monospace;
@@ -94,8 +104,12 @@
     display:block;
     padding:80px 6vw;
   }
+  .mask-options {
+    margin-top:70px;
+  }
   .mask-options>img {
-    margin-left:45%;
+    height:140px;
+    width:55%;
   }
 }
 .upsell-copy>p:last-child {
