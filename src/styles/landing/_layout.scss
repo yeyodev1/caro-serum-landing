@@ -140,13 +140,6 @@
   font:500 11px 'DM Mono',monospace;
   color:var(--copper);
 }
-.quotes-highlight {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:24px;
-  max-width:1380px;
-  margin:45px auto 35px;
-}
 .stars {
   color:#e6a100;
   font-size:14px;
