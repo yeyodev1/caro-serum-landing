@@ -21,14 +21,22 @@
 .combo-grid {
   display:grid;
   gap:18px;
-  grid-template-columns:repeat(2,1fr);
+  // minmax(0,1fr) y no repeat(2,1fr): con `1fr` el mínimo de la columna es
+  // min-content, y los títulos grandes (“Crecimiento”) ensanchaban la grilla
+  // más allá de la pantalla. Eso era el scroll horizontal del móvil.
+  grid-template-columns:repeat(2,minmax(0,1fr));
   margin-top:52px;
 }
-.combo-grid>:last-child:nth-child(odd) {
-  grid-column:span 2;
+// El pack final ocupa la fila entera, pero sólo donde hay dos columnas: en
+// móvil `span 2` creaba una segunda columna implícita y rompía el ancho.
+@media (min-width:751px) {
+  .combo-grid>:last-child:nth-child(odd) {
+    grid-column:span 2;
+  }
 }
 .combo-card {
   background:var(--cream);
+  min-width:0;
   padding:35px;
 }
 .combo-card.featured {
@@ -36,22 +44,25 @@
   color:var(--cream);
 }
 .combo-card h3 {
-  font:600 clamp(36px,4vw,57px)/.92 'Playfair Display',serif;
+  font:600 clamp(30px,4vw,57px)/.92 'Playfair Display',serif;
   letter-spacing:-.055em;
   margin:35px 0 20px;
+  overflow-wrap:anywhere;
   white-space:pre-line;
 }
 .combo-image {
-  aspect-ratio:3/2;
+  aspect-ratio:4/3;
   background:var(--pink-soft);
   margin:-35px -35px 28px;
   overflow:hidden;
 }
+// `contain`, no `cover`: Carolina pidió ver la foto completa del pack. Con
+// `cover` se recortaban los estuches de los extremos.
 .combo-image img {
   display:block;
   filter:blur(12px);
   height:100%;
-  object-fit:cover;
+  object-fit:contain;
   opacity:0;
   transition:filter .55s,opacity .55s;
   width:100%;
@@ -60,8 +71,10 @@
   filter:blur(0);
   opacity:1;
 }
-.combo-grid>:last-child:nth-child(odd) .combo-image {
-  aspect-ratio:24/7;
+@media (min-width:751px) {
+  .combo-grid>:last-child:nth-child(odd) .combo-image {
+    aspect-ratio:16/9;
+  }
 }
 .combo-items {
   font-size:14px;
@@ -101,14 +114,16 @@
   display:inline-block;
   margin-top:4px;
 }
-.individual-products {
+// Carolina pidió ver primero las unidades sueltas y después los packs, así que
+// la separación visual la lleva ahora el bloque de combos.
+.combo-collection {
   margin-top:80px;
   padding-top:60px;
   border-top:1px solid var(--line);
 }
 @media (max-width:750px) {
-  .product-grid,.combo-grid {
-    grid-template-columns:1fr;
+  .combo-grid {
+    grid-template-columns:minmax(0,1fr);
   }
   .products-section,.combos-section {
     padding:80px 6vw;
