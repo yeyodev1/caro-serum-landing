@@ -3,6 +3,7 @@
   background:#fffdfa;
 }
 .results-grid {
+  align-items:start;
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
   gap:28px;
@@ -16,15 +17,17 @@
   display:flex;
   flex-direction:column;
 }
+// Sin `aspect-ratio` fijo: los antes/después son verticales y con el cuadrado
+// de 1/1 más `cover` se cortaban las cejas y la marca de agua.
 .result-image {
-  aspect-ratio:1/1;
+  background:var(--cream);
   overflow:hidden;
-  background:#eee;
 }
 .result-image img {
+  display:block;
+  height:auto;
+  object-fit:contain;
   width:100%;
-  height:100%;
-  object-fit:cover;
 }
 .result-info {
   padding:20px;
