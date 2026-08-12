@@ -1,3 +1,12 @@
+// Red de seguridad: si alguna sección vuelve a desbordar a lo ancho, la página
+// no queda trabada en scroll horizontal como reportó Carolina en el celular.
+html,body {
+  max-width:100%;
+  overflow-x:clip;
+}
+img {
+  max-width:100%;
+}
 button,input {
   font:inherit;
 }
