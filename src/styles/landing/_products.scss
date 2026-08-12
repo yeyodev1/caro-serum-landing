@@ -6,16 +6,20 @@
 .product-grid {
   display:grid;
   gap:16px;
-  grid-template-columns:repeat(3,1fr);
+  grid-template-columns:repeat(3,minmax(0,1fr));
   margin-top:55px;
 }
+// La tarjeta apila en columna: antes `.product-info` iba en absolute y el
+// título se montaba encima de la foto cuando el texto crecía.
 .product-card {
   background:#f5e3de;
   color:var(--ink);
+  display:flex;
+  flex-direction:column;
   min-height:480px;
+  min-width:0;
   overflow:hidden;
   padding:20px;
-  position:relative;
 }
 .product-number {
   font:10px 'DM Mono',monospace;
@@ -29,14 +33,17 @@
 .product-image.liner {
   width:100%;
 }
+// Sin ancho la imagen salía a tamaño original (1100px) y desbordaba la tarjeta.
 .product-image img {
+  display:block;
+  height:100%;
   mix-blend-mode:multiply;
+  object-fit:contain;
+  width:100%;
 }
 .product-info {
-  bottom:21px;
-  left:20px;
-  position:absolute;
-  right:20px;
+  margin-top:auto;
+  padding-top:18px;
 }
 .product-info>p {
   color:var(--copper);
@@ -47,6 +54,7 @@
   font:600 29px/.98 'Playfair Display',serif;
   letter-spacing:-.04em;
   margin:8px 0;
+  overflow-wrap:anywhere;
 }
 .product-info>span {
   font-size:12px;
@@ -72,8 +80,18 @@
   justify-content:center;
   width:38px;
 }
+// Este parcial se carga después de `combos`, así que la regla móvil de allá
+// para `.product-grid` quedaba pisada por el `repeat(3,...)` de arriba: la
+// grilla seguía en tres columnas en el celular. El breakpoint vive aquí.
 @media (max-width:750px) {
+  .product-grid {
+    grid-template-columns:minmax(0,1fr);
+  }
   .product-card {
-    min-height:440px;
+    min-height:0;
+  }
+  .product-image {
+    height:280px;
+    width:100%;
   }
 }
