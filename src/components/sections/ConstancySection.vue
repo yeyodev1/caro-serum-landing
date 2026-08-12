@@ -11,7 +11,9 @@ const { imageLoaded, markImageLoaded } = useImageLoad()
     <div class="constancy-content">
       <div class="constancy-copy">
         <p class="eyebrow"><span></span> LA REGLA OMGLASHES</p>
-        <h2>Consejo: la constancia vende más<br><em>que una promesa exagerada.</em></h2>
+        <!-- El titular “Consejo: la constancia vende más…” salió del deck como
+             nota interna, no como copy para la clienta: Carolina pidió quitarlo. -->
+        <h2>Comprueba tu avance<br><em>sin adivinar.</em></h2>
         <p class="constancy-tip">Los cambios diarios pueden ser difíciles de notar. Por eso creamos una forma sencilla de comprobar tu constancia: <strong>la Regla de Medición OMGLASHES</strong>.</p>
         <div class="constancy-steps">
           <div><b>01</b><span>Mide tus pestañas el Día 1</span></div>
