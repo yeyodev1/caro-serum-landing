@@ -17,31 +17,11 @@ const { imageLoaded, markImageLoaded } = useImageLoad()
       <h3 class="combo-subheading">Elige tu rutina OMGLASHES</h3>
       <p>Obtén producto para más tiempo, evita interrumpir tu rutina y recibe <strong>Envío GRATIS</strong>.</p>
     </div>
-    <div class="combo-grid">
-      <article
-        v-for="combo in combos" :key="combo.id" class="combo-card"
-        :class="{ featured: featuredComboIds.includes(combo.id) }">
-        <div class="combo-image" :class="{ loaded: imageLoaded(combo.image) }">
-          <img :src="combo.image" :alt="combo.name" loading="lazy" @load="markImageLoaded(combo.image)">
-        </div>
-        <p class="tag">{{ combo.size }}</p>
-        <h3>{{ combo.name }}</h3>
-        <p class="combo-items">{{ combo.detail }}<br><span class="free-shipping">✦ Envío gratis incluido</span></p>
-        <div class="combo-price">
-          <s>{{ comboCompareAt[combo.id] }}</s>
-          <strong>{{ formatPrice(combo.price) }}</strong>
-        </div>
-        <button class="button button-dark" type="button" @click="addToCart(combo)">
-          Elegir este pack <span>→</span>
-        </button>
-      </article>
-    </div>
-
-    <!-- Productos Individuales -->
+    <!-- Productos individuales primero, packs después. -->
     <div id="productos" class="individual-products">
       <div class="section-heading">
         <p class="eyebrow"><span></span> PRODUCTOS INDIVIDUALES</p>
-        <h3>O elige una <em>unidad individual:</em></h3>
+        <h3>Elige una <em>unidad individual:</em></h3>
       </div>
       <div class="product-grid">
         <article v-for="(product, index) in products" :key="product.id" class="product-card">
@@ -58,6 +38,32 @@ const { imageLoaded, markImageLoaded } = useImageLoad()
               <button type="button" :aria-label="`Agregar ${product.name}`" @click="addToCart(product)">→</button>
             </div>
           </div>
+        </article>
+      </div>
+    </div>
+
+    <div class="combo-collection">
+      <div class="section-heading">
+        <p class="eyebrow"><span></span> PACKS Y RUTINAS</p>
+        <h3>O ahorra con un <em>combo:</em></h3>
+      </div>
+      <div class="combo-grid">
+        <article
+          v-for="combo in combos" :key="combo.id" class="combo-card"
+          :class="{ featured: featuredComboIds.includes(combo.id) }">
+          <div class="combo-image" :class="{ loaded: imageLoaded(combo.image) }">
+            <img :src="combo.image" :alt="combo.name" loading="lazy" @load="markImageLoaded(combo.image)">
+          </div>
+          <p class="tag">{{ combo.size }}</p>
+          <h3>{{ combo.name }}</h3>
+          <p class="combo-items">{{ combo.detail }}<br><span class="free-shipping">✦ Envío gratis incluido</span></p>
+          <div class="combo-price">
+            <s>{{ comboCompareAt[combo.id] }}</s>
+            <strong>{{ formatPrice(combo.price) }}</strong>
+          </div>
+          <button class="button button-dark" type="button" @click="addToCart(combo)">
+            Elegir este pack <span>→</span>
+          </button>
         </article>
       </div>
     </div>
