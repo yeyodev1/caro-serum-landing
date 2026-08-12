@@ -16,9 +16,11 @@
 }
 .trust-logos {
   margin:auto;
-  // El original es un recorte del PPT de 857px de ancho: mostrarlo más grande
-  // que esto lo reescala y se ve borroso. Subir sólo con los logos originales.
-  max-width:620px;
+  // El original es un recorte del PPT de 857px de ancho. A 620px CSS, en una
+  // pantalla 2x el navegador pide 1240px y Cloudinary no los tiene: por eso
+  // Carolina lo ve pixelado. Con 430px el archivo cubre el 2x exacto.
+  // Se sube el tope sólo cuando lleguen los logos originales de cada tienda.
+  max-width:430px;
 }
 .trust-logos img {
   display:block;
