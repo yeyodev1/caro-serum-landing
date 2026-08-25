@@ -21,12 +21,14 @@ export const comboDobleImage = cld('ChatGPT_Image_6_ago_2026_12_41_38_a.m.', 125
 export const comboTrioImage = cld('ChatGPT_Image_6_ago_2026_12_38_26_a.m.', 1536)
 // slide 12 · trío + mascarillas (original 1536x1024)
 export const maskHeroBanner = cld('04e1538a-6e8e-412c-b0e9-f5aa92980061', 1536)
-// slide 4 · productos individuales. Son las fotos exactas del deck, las que pidió
-// Carolina; no están en Cloudinary ni en el Drive, sólo llegaron como recortes de
-// ~195 px, así que viven en `public/productos/`.
-// Ese ancho es el techo real: la tarjeta las muestra a 190 px como máximo porque
-// estirarlas más las deja borrosas. Cuando lleguen los originales se sube el tope
-// en `.product-image` de `_products.scss`.
+// slide 4 · productos individuales. Las fotos del deck sólo llegaron como recortes
+// de ~195 px y a tamaño de tarjeta se veían borrosas, así que estas son
+// recreaciones en 2048 px hechas con Higgsfield (gpt_image_2) tomando esos recortes
+// como referencia: misma escena, mismo producto, misma marca.
+// **Son imágenes generadas, no fotografías del producto físico**: el envase y la
+// tipografía del logo están recreados, no escaneados. Pendiente el visto bueno de
+// Carolina; si manda las fotos originales en alta, se reemplazan estos archivos y
+// no hay que tocar nada más.
 export const serum10Image = '/productos/serum-10ml.jpg'
 export const serum5Image = '/productos/serum-5ml.jpg'
 export const eyelinerImage = '/productos/delineador-2en1.jpg'
