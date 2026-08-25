@@ -83,7 +83,10 @@
   text-transform:uppercase;
   width:100%;
 }
-:global(.order-detail-full) {
+// Sin `:global(...)`: este `<style>` no lleva `scoped`, así que Vue no traduce esa
+// envoltura y llegaba tal cual al CSS. El navegador la descarta por selector
+// inválido y las reglas no se aplicaban nunca.
+.order-detail-full {
   background:#fffdfa;
   border:1px solid #d9c5bc;
   color:#1D1D1B;
@@ -92,10 +95,10 @@
   letter-spacing:.05em;
   text-transform:uppercase;
 }
-:global(.order-detail-full)>i {
+.order-detail-full>i {
   color:#b86f54;
 }
-:global(.order-detail-full):hover {
+.order-detail-full:hover {
   background:#1D1D1B;
   color:#fffdfa;
 }
