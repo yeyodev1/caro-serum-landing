@@ -15,23 +15,41 @@
   font-weight:500;
 }
 .trust-logos {
-  margin:auto;
-  // El original es un recorte del PPT de 857px de ancho. A 620px CSS, en una
-  // pantalla 2x el navegador pide 1240px y Cloudinary no los tiene: por eso
-  // Carolina lo ve pixelado. Con 430px el archivo cubre el 2x exacto.
-  // Se sube el tope sólo cuando lleguen los logos originales de cada tienda.
-  max-width:430px;
+  align-items:center;
+  display:flex;
+  flex-wrap:wrap;
+  gap:34px 46px;
+  justify-content:center;
+  list-style:none;
+  margin:0;
+  padding:0;
 }
-.trust-logos img {
+// Cada logo lleva su propio ancho (`--logo-width`) porque las proporciones no se
+// parecen: el de Pharmacy's es una caja horizontal y el de Gloss es casi cuadrado.
+// El `max-height` evita que el cuadrado se coma el alto de la barra.
+.trust-logo {
+  align-items:center;
+  display:flex;
+}
+// `max-width` + `max-height` en vez de un ancho fijo: así manda la restricción que
+// toque en cada logo y ninguno se deforma.
+.trust-logo img {
   display:block;
-  filter:blur(10px);
+  height:auto;
+  max-height:64px;
+  max-width:var(--logo-width);
   opacity:0;
-  transition:filter .55s,opacity .55s;
-  width:100%;
+  transition:opacity .45s;
+  width:auto;
 }
-.trust-logos.loaded img {
-  filter:blur(0);
+.trust-logo.loaded img {
   opacity:1;
+}
+// Pharmacy's solo publica su logo en blanco, así que aquí lleva detrás su rojo de
+// marca: es la misma caja roja que aparece en el deck.
+.trust-logo.plated {
+  background:var(--logo-plate);
+  padding:10px 14px;
 }
 @media (max-width:750px) {
   .trust-claim {
