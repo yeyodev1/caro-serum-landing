@@ -91,7 +91,10 @@
 .marquee-track b {
   color:var(--cream);
 }
-:global(.cart-mask-quick-add) {
+// Sin `:global(...)`: estos `<style>` no llevan `scoped`, así que Vue no traduce esa
+// envoltura y llegaba tal cual al CSS. El navegador la descarta por selector
+// inválido y las reglas no se aplicaban nunca.
+.cart-mask-quick-add {
   align-items:center;
   background:var(--ink);
   border:0;
@@ -106,19 +109,19 @@
   transition:background .2s,transform .2s;
   width:100%;
 }
-:global(.cart-mask-quick-add:hover) {
+.cart-mask-quick-add:hover {
   background:var(--copper);
   transform:translateY(-2px);
 }
-:global(.cart-mask-quick-add span) {
+.cart-mask-quick-add span {
   max-width:145px;
 }
-:global(.cart-mask-quick-add strong) {
+.cart-mask-quick-add strong {
   color:var(--pink);
   font:500 10px/1.35 'DM Mono',monospace;
   text-align:right;
 }
-:global(.cart-mask-quick-add:hover strong) {
+.cart-mask-quick-add:hover strong {
   color:var(--cream);
 }
 .hero-bullets {
