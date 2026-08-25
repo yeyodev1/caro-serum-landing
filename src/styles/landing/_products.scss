@@ -11,30 +11,36 @@
 }
 // La tarjeta apila en columna: antes `.product-info` iba en absolute y el
 // título se montaba encima de la foto cuando el texto crecía.
+//
+// Sin `min-height`: con 480 px fijos y una foto tope de 190 px quedaba un hueco
+// muerto de casi media tarjeta entre la imagen y el texto. Ahora la tarjeta mide
+// lo que miden sus partes y todas terminan igual de altas por el `stretch` de la
+// grilla, no por un alto inventado.
 .product-card {
   background:#f5e3de;
   color:var(--ink);
   display:flex;
   flex-direction:column;
-  min-height:480px;
   min-width:0;
   overflow:hidden;
-  padding:20px;
+  padding:18px;
 }
 .product-number {
   font:10px 'DM Mono',monospace;
 }
 // Las fotos del deck llegaron como recortes de ~195 px: mostrarlas más grandes las
-// deja borrosas, así que la caja se topa en 190 px y se centra en la tarjeta.
-// Subir este tope sólo cuando Carolina mande los originales.
+// deja borrosas, así que la imagen se topa en 190 px. Lo que sí llena el ancho de
+// la tarjeta es el marco crema de atrás: asi la foto se queda nítida y la tarjeta
+// no se ve vacía. Subir el tope de la imagen sólo cuando Carolina mande los
+// originales (ahí el marco puede desaparecer y la foto ir a sangre).
 .product-image {
-  height:190px;
-  margin:10px auto 0;
-  max-width:190px;
+  align-items:center;
+  background:var(--cream);
+  display:flex;
+  height:236px;
+  justify-content:center;
+  margin:12px 0 0;
   overflow:hidden;
-  width:100%;
-}
-.product-image.liner {
   width:100%;
 }
 // Sin `mix-blend-mode:multiply`: servía para fundir el fondo blanco de las fotos de
@@ -42,13 +48,13 @@
 // plato, piel) y el multiply las ensuciaba.
 .product-image img {
   display:block;
-  height:100%;
+  max-height:190px;
+  max-width:190px;
   object-fit:contain;
-  width:100%;
 }
 .product-info {
   margin-top:auto;
-  padding-top:18px;
+  padding-top:16px;
 }
 .product-info>p {
   color:var(--copper);
@@ -92,10 +98,7 @@
   .product-grid {
     grid-template-columns:minmax(0,1fr);
   }
-  .product-card {
-    min-height:0;
-  }
   .product-image {
-    height:190px;
+    height:206px;
   }
 }
