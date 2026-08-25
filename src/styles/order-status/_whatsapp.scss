@@ -17,7 +17,10 @@
   text-decoration:none;
   width:max-content;
 }
-:global(.order-detail-whatsapp),:global(.order-detail-full) {
+// Sin `:global(...)`: este `<style>` no lleva `scoped`, así que Vue no traduce esa
+// envoltura y llegaba tal cual al CSS. El navegador la descarta por selector
+// inválido y las reglas no se aplicaban nunca.
+.order-detail-whatsapp,.order-detail-full {
   align-items:center!important;
   border-radius:0;
   display:flex!important;
@@ -26,12 +29,12 @@
   padding:15px 16px!important;
   text-decoration:none!important;
 }
-:global(.order-detail-whatsapp) {
+.order-detail-whatsapp {
   background:#e7f8ea!important;
   border:1px solid #65c979;
   color:#12331d!important;
 }
-:global(.order-detail-whatsapp)>i:first-child {
+.order-detail-whatsapp>i:first-child {
   align-items:center;
   background:#25d366;
   border-radius:50%;
@@ -41,7 +44,7 @@
   justify-content:center;
   width:34px;
 }
-:global(.order-detail-whatsapp) span {
+.order-detail-whatsapp span {
   align-items:flex-start!important;
   display:flex!important;
   flex:1;
@@ -49,14 +52,14 @@
   gap:2px!important;
   text-align:left!important;
 }
-:global(.order-detail-whatsapp) b {
+.order-detail-whatsapp b {
   font:700 13px Arial,sans-serif!important;
 }
-:global(.order-detail-whatsapp) small {
+.order-detail-whatsapp small {
   color:#346341;
   font:11px Arial,sans-serif!important;
 }
-:global(.order-detail-whatsapp)>i:last-child {
+.order-detail-whatsapp>i:last-child {
   color:#16893b;
   font-size:12px;
 }
