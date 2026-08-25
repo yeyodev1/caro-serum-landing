@@ -21,10 +21,15 @@ export const comboDobleImage = cld('ChatGPT_Image_6_ago_2026_12_41_38_a.m.', 125
 export const comboTrioImage = cld('ChatGPT_Image_6_ago_2026_12_38_26_a.m.', 1536)
 // slide 12 · trío + mascarillas (original 1536x1024)
 export const maskHeroBanner = cld('04e1538a-6e8e-412c-b0e9-f5aa92980061', 1536)
-// slide 4 · productos individuales (originales de cámara, muy por encima de lo necesario)
-export const serum10Image = cld('DSC05487', 1100)
-export const serum5Image = cld('DSC05493', 1100)
-export const eyelinerImage = cld('DSC05482', 1100)
+// slide 4 · productos individuales. Son las fotos exactas del deck, las que pidió
+// Carolina; no están en Cloudinary ni en el Drive, sólo llegaron como recortes de
+// ~195 px, así que viven en `public/productos/`.
+// Ese ancho es el techo real: la tarjeta las muestra a 190 px como máximo porque
+// estirarlas más las deja borrosas. Cuando lleguen los originales se sube el tope
+// en `.product-image` de `_products.scss`.
+export const serum10Image = '/productos/serum-10ml.jpg'
+export const serum5Image = '/productos/serum-5ml.jpg'
+export const eyelinerImage = '/productos/delineador-2en1.jpg'
 // slide 6 · regla de progreso (original 1060x1061)
 export const rulerImage = cld('20210713_120611', 1060)
 // slide 10 · mascarilla de colágeno (original 980x1000)
