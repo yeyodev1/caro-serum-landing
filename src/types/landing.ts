@@ -1,6 +1,9 @@
 export type Product = { id: string; name: string; detail: string; price: number; size: string; image: string }
 export type CartItem = { productId: string; name: string; price: number; qty: number }
 export type PaymentMethod = 'payphone' | 'transfer'
+// Logo de un punto de venta en la barra de confianza. `plate` es opcional: solo lo
+// llevan los logos que vienen en blanco y necesitan su color de marca detrás.
+export type RetailerLogo = { src: string; alt: string; width: number; plate?: string }
 
 export type OrderResponse = {
   order?: { status?: string; reference?: string; clientTransactionId?: string; hasTransferReceipt?: boolean }
