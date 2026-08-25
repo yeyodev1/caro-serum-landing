@@ -27,9 +27,12 @@
 // Cada logo lleva su propio ancho (`--logo-width`) porque las proporciones no se
 // parecen: el de Pharmacy's es una caja horizontal y el de Gloss es casi cuadrado.
 // El `max-height` evita que el cuadrado se coma el alto de la barra.
+// El `min-height` reserva el sitio antes de que carguen los archivos: si no, la
+// fila salta de alto al terminar la carga.
 .trust-logo {
   align-items:center;
   display:flex;
+  min-height:48px;
 }
 // `max-width` + `max-height` en vez de un ancho fijo: así manda la restricción que
 // toque en cada logo y ninguno se deforma.
