@@ -15,7 +15,10 @@ const { imageLoaded, markImageLoaded } = useImageLoad()
         v-for="logo in retailerLogos" :key="logo.src"
         class="trust-logo" :class="{ loaded: imageLoaded(logo.src), plated: !!logo.plate }"
         :style="{ '--logo-width': `${logo.width}px`, '--logo-plate': logo.plate }">
-        <img :src="logo.src" :alt="logo.alt" loading="lazy" @load="markImageLoaded(logo.src)">
+        <!-- Sin `loading="lazy"`: el logo no tiene alto propio hasta que carga, así que
+             la caja mide 0x0 y Chrome nunca dispara la carga diferida. La barra va
+             arriba del todo y los tres archivos pesan poco, no hay nada que diferir. -->
+        <img :src="logo.src" :alt="logo.alt" @load="markImageLoaded(logo.src)">
       </li>
     </ul>
   </section>
