@@ -4,6 +4,8 @@
 // El ancho pedido nunca supera el ancho real del archivo: pedirle a Cloudinary más
 // píxeles de los que tiene la fuente la reescala hacia arriba y se ve borrosa.
 // Junto a cada constante va el tamaño del original como referencia.
+import type { RetailerLogo } from '@/types/landing'
+
 const BRIGHTNESS = 8
 
 export const cld = (id: string, w: number) =>
@@ -29,5 +31,15 @@ export const rulerImage = cld('20210713_120611', 1060)
 export const maskProductImage = cld('61zG7fAVAoL._AC_UF1000_1000_QL80_', 980)
 // slide 8 · recorte del PPT (original 752x762, no hay fuente mayor)
 export const howToApplyImage = cld('como-aplicarlo', 752)
-// slide 9 · recorte del PPT (original 857x234; pendiente pedir los logos originales a Carolina)
-export const retailersStrip = cld('retailers-strip', 857)
+// slide 9 · puntos de venta. Ya no es el recorte del PPT (857x234, pixelado): cada
+// logo se bajó del sitio oficial de la tienda y vive en `public/retailers/`, así que
+// se ve nítido en pantallas 2x. `width` es el ancho óptico de cada uno en la barra;
+// no son iguales porque el de Pharmacy's es una caja horizontal y el de Gloss es
+// casi cuadrado.
+export const retailerLogos: RetailerLogo[] = [
+  { src: '/retailers/me-by-erika-velez.png', alt: 'ME by Erika Vélez', width: 140 },
+  // El archivo oficial de Pharmacy's es el logo en blanco: va sobre su rojo de marca
+  // (#8A000B, tomado de su propio header), igual que la caja roja del deck.
+  { src: '/retailers/pharmacys.svg', alt: "Pharmacy's", width: 150, plate: '#8A000B' },
+  { src: '/retailers/gloss-beauty-shop.png', alt: 'Gloss Beauty Shop', width: 84 },
+]
