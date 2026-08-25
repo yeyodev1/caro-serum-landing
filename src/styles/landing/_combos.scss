@@ -1,5 +1,9 @@
+// Sin el tope de 1280 px: en pantallas anchas la seccion quedaba encajonada al
+// centro y sobraba rosa a los lados. Ahora el margen lo pone el padding de 5vw
+// de `.combos-section` y titulos y grillas usan la pantalla entera; el tope alto
+// es solo un freno para monitores ultrapanoramicos.
 .section-heading,.product-grid,.combo-grid {
-  max-width:1280px;
+  max-width:2200px;
   margin:auto;
 }
 .combos-section {
@@ -8,7 +12,7 @@
 }
 .combo-heading {
   margin:auto;
-  max-width:1280px;
+  max-width:2200px;
 }
 .combo-heading h2 {
   font-size:clamp(50px,5.7vw,80px);
