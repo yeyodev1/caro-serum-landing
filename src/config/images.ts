@@ -43,6 +43,9 @@ export const howToApplyImage = cld('como-aplicarlo', 752)
 // casi cuadrado.
 export const retailerLogos: RetailerLogo[] = [
   { src: '/retailers/me-by-erika-velez.png', alt: 'ME by Erika Vélez', width: 140 },
+  // La misma marca tiene un logo aparte para su línea de cejas y pestañas: es el
+  // banner del local de Ceibos, recortado del original (3508x2480, casi todo aire).
+  { src: '/retailers/byme-cejas-y-pestanas.png', alt: 'BY ME · Cejas y Pestañas', width: 168 },
   // El archivo oficial de Pharmacy's es el logo en blanco: va sobre su rojo de marca
   // (#8A000B, tomado de su propio header), igual que la caja roja del deck.
   { src: '/retailers/pharmacys.svg', alt: "Pharmacy's", width: 150, plate: '#8A000B' },
