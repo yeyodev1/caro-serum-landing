@@ -80,11 +80,13 @@
 }
 .receipt-preview {
   margin:16px 0 0;
+  scroll-margin-top:18px;
 }
 .receipt-preview img {
+  background:#f1e9e4;
   border:1px solid var(--line);
   display:block;
-  max-height:220px;
+  height:min(58vh,440px);
   object-fit:contain;
   width:100%;
 }
@@ -92,6 +94,17 @@
   color:#55565A;
   font:10px/1.45 'DM Mono',monospace;
   margin-top:7px;
+}
+.receipt-zoom {
+  background:transparent;
+  border:0;
+  border-bottom:1px solid var(--ink);
+  cursor:pointer;
+  font:500 10px 'DM Mono',monospace;
+  letter-spacing:.08em;
+  margin-top:9px;
+  padding:4px 0;
+  text-transform:uppercase;
 }
 .transfer-amount {
   background:var(--pink-soft);
