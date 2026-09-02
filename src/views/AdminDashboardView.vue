@@ -47,6 +47,8 @@ const itemContents = (item: OrderItem) => item.contents || contentsByProductId[i
 // Cloudinary. Las que viven en /public se sirven tal cual.
 const itemImage = (item: OrderItem) => (catalogById[item.productId]?.image || '').replace(/,w_\d+\//, ',w_160/')
 const itemCount = (order: Order) => order.items.reduce((total, item) => total + item.quantity, 0)
+// Transferencia sin respaldo: no se puede verificar en el panel, solo en el banco.
+const needsReceipt = (order: Order) => order.paymentMethod === 'transfer' && order.status === 'awaiting_transfer' && !order.hasTransferReceipt
 const statusLabel = (status: Order['status']) => status === 'paid' ? 'PAGADO' : status === 'awaiting_transfer' ? 'TRANSFERENCIA POR REVISAR' : status === 'cancelled' ? 'CANCELADO' : 'PAGO PENDIENTE'
 
 function formatPhone(phone: string) {
@@ -56,6 +58,7 @@ function formatPhone(phone: string) {
 
 const visibleOrders = computed(() => orders.value.filter((order) => section.value === 'all' || (section.value === 'transfers' && order.paymentMethod === 'transfer' && order.status === 'awaiting_transfer') || (section.value === 'pending' && order.status === 'pending_payphone') || (section.value === 'paid' && order.status === 'paid')))
 const counts = computed(() => ({ transfers: orders.value.filter((order) => order.paymentMethod === 'transfer' && order.status === 'awaiting_transfer').length, pending: orders.value.filter((order) => order.status === 'pending_payphone').length, paid: orders.value.filter((order) => order.status === 'paid').length }))
+const missingReceipts = computed(() => orders.value.filter(needsReceipt).length)
 
 function headers() { return { Authorization: `Bearer ${localStorage.getItem('access_token') || ''}`, 'Content-Type': 'application/json' } }
 function notify(message: string) { toast.value = message; window.setTimeout(() => { toast.value = '' }, 3500) }
@@ -191,6 +194,7 @@ onMounted(() => {
         <span><b>{{ counts.transfers }}</b> transferencias por aprobar</span>
         <span><b>{{ counts.pending }}</b> pagos PayPhone pendientes</span>
         <span><b>{{ counts.paid }}</b> pagos confirmados</span>
+        <span v-if="missingReceipts" class="stat-alert"><i class="fa-solid fa-triangle-exclamation"></i><b>{{ missingReceipts }}</b> sin comprobante</span>
       </div>
 
       <div v-if="isLoading" class="orders skeletons">
@@ -207,15 +211,18 @@ onMounted(() => {
       </Transition>
 
       <TransitionGroup v-if="!isLoading" name="order" tag="div" class="orders">
-        <article v-for="(order, index) in visibleOrders" :key="order.reference" :style="{ '--i': Math.min(index, 7) }">
+        <article v-for="(order, index) in visibleOrders" :key="order.reference" :class="{ 'needs-receipt': needsReceipt(order) }" :style="{ '--i': Math.min(index, 7) }">
           <div class="order-head">
             <div>
               <small>{{ new Date(order.createdAt).toLocaleString('es-EC') }}</small>
               <h2>{{ order.reference }}</h2>
             </div>
-            <Transition name="badge" mode="out-in">
-              <strong :key="order.status" :class="order.status">{{ statusLabel(order.status) }}</strong>
-            </Transition>
+            <div class="order-badges">
+              <strong v-if="needsReceipt(order)" class="badge-missing"><i class="fa-solid fa-triangle-exclamation"></i> SIN COMPROBANTE</strong>
+              <Transition name="badge" mode="out-in">
+                <strong :key="order.status" :class="order.status">{{ statusLabel(order.status) }}</strong>
+              </Transition>
+            </div>
           </div>
 
           <div class="order-items">
@@ -272,13 +279,17 @@ onMounted(() => {
           </div>
           <p v-else class="order-invoice-empty">Este pedido no solicitó factura.</p>
 
+          <p v-if="needsReceipt(order)" class="receipt-alert">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span><b>El cliente no subió el comprobante.</b> Verifica en tu banco que entró el depósito de {{ money(order.totalCents) }} de {{ order.buyer.firstName }} {{ order.buyer.lastName }} antes de aprobar este pedido.</span>
+          </p>
+
           <footer>
             <button class="detail" @click="detailTarget = order"><i class="fa-solid fa-eye"></i> Ver pedido</button>
             <a :href="whatsappLink(order)" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> Contactar cliente</a>
             <button class="copy" @click="copyShipping(order)"><i class="fa-solid fa-copy"></i> Copiar datos de envío</button>
             <template v-if="order.paymentMethod === 'transfer' && order.status === 'awaiting_transfer'">
               <button v-if="order.hasTransferReceipt" class="receipt" @click="openReceipt(order)"><i class="fa-solid fa-receipt"></i> Ver comprobante</button>
-              <span v-else class="no-receipt"><i class="fa-solid fa-triangle-exclamation"></i> El cliente no subió comprobante</span>
               <button class="approve" @click="approveTarget = order"><i class="fa-solid fa-check"></i> Aprobar y enviar correo</button>
             </template>
           </footer>
@@ -294,6 +305,10 @@ onMounted(() => {
       @close="detailTarget = null"
     >
       <template v-if="detailTarget">
+        <p v-if="needsReceipt(detailTarget)" class="receipt-alert">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span><b>El cliente no subió el comprobante.</b> Verifica en tu banco que entró el depósito de {{ money(detailTarget.totalCents) }} antes de aprobar.</span>
+        </p>
         <p class="detail-date">{{ new Date(detailTarget.createdAt).toLocaleString('es-EC') }} · {{ itemCount(detailTarget) }} {{ itemCount(detailTarget) === 1 ? 'producto' : 'productos' }}</p>
 
         <h3>Qué compró</h3>
@@ -443,8 +458,17 @@ onMounted(() => {
 .modal-primary:active:not(:disabled),.modal-ghost:active:not(:disabled) { box-shadow:none;transform:translateY(0) scale(.985) }
 .modal-primary:disabled,.modal-ghost:disabled { cursor:not-allowed;opacity:.55;transform:none }
 
-.orders footer .no-receipt { align-items:center;color:#8a6d1f;display:flex;font:600 11px Arial,sans-serif;gap:8px;letter-spacing:.05em;padding:13px 0;text-transform:uppercase }
 .approve-warning { align-items:flex-start;background:#fbf0d6;color:#7b5110;display:flex;font-size:13px;gap:10px;line-height:1.45;margin:16px 0 0;padding:14px }
+/* Sin comprobante no hay nada que revisar en el panel: se avisa en la lista, en
+   la cabecera de la tarjeta y sobre los botones, para que no pase inadvertido. */
+.stats .stat-alert { align-items:center;background:#8a2f22;color:#fff;display:flex;gap:9px }
+.stats .stat-alert i { font-size:13px }
+.orders article.needs-receipt { border-left:4px solid #c9821f }
+.order-badges { align-items:flex-end;display:flex;flex-direction:column;gap:7px }
+.order-head .badge-missing { align-items:center;background:#8a2f22;color:#fff;display:flex;gap:7px;white-space:nowrap }
+.receipt-alert { align-items:flex-start;background:#fbf0d6;border-left:3px solid #c9821f;color:#7b5110;display:flex;font-size:13px;gap:11px;line-height:1.45;margin:18px 0 0;padding:14px 16px }
+.receipt-alert i { font-size:15px;margin-top:1px }
+.admin-modal-body .receipt-alert { margin:0 0 20px }
 .approve-warning i { margin-top:2px }
 
 /* --- Detalle del pedido --- */
@@ -469,6 +493,6 @@ onMounted(() => {
 .admin-modal-body .muted { color:#8d817c;font-size:12px;margin-top:22px }
 .detail-invoice .muted { margin:4px 0 0 }
 .orders footer .detail { background:var(--ink);border:1px solid var(--ink);color:var(--cream) }
-@media (max-width:700px) { .content { padding:22px 18px 36px }.content-header { flex-direction:column;gap:20px }.content h1 { font-size:42px }.order-head { flex-direction:column }.order-head strong { align-self:flex-start }.order-details { flex-direction:column;gap:16px }.orders footer { align-items:stretch;flex-direction:column }.orders footer button,.orders footer a { justify-content:center;width:100% }.order-invoice>div { flex-direction:column;gap:14px }.order-invoice p { flex:0 0 auto }.modal-primary,.modal-ghost { justify-content:center;width:100% }.detail-grid { flex-direction:column;gap:20px }.detail-grid>div { flex:0 0 auto }.detail-thumb { height:60px;width:60px }.order-items .thumb { height:42px;width:42px } }
+@media (max-width:700px) { .content { padding:22px 18px 36px }.content-header { flex-direction:column;gap:20px }.content h1 { font-size:42px }.order-head { flex-direction:column }.order-head strong { align-self:flex-start }.order-badges { align-items:flex-start }.order-details { flex-direction:column;gap:16px }.orders footer { align-items:stretch;flex-direction:column }.orders footer button,.orders footer a { justify-content:center;width:100% }.order-invoice>div { flex-direction:column;gap:14px }.order-invoice p { flex:0 0 auto }.modal-primary,.modal-ghost { justify-content:center;width:100% }.detail-grid { flex-direction:column;gap:20px }.detail-grid>div { flex:0 0 auto }.detail-thumb { height:60px;width:60px }.order-items .thumb { height:42px;width:42px } }
 @media (prefers-reduced-motion:reduce) { .content-header,.stats span,.skeletons article,.receipt-frame img,.order-enter-active { animation:none }.spinning { animation-duration:2.4s } }
 </style>
