@@ -278,7 +278,8 @@ onMounted(() => {
             <button class="copy" @click="copyShipping(order)"><i class="fa-solid fa-copy"></i> Copiar datos de envío</button>
             <template v-if="order.paymentMethod === 'transfer' && order.status === 'awaiting_transfer'">
               <button v-if="order.hasTransferReceipt" class="receipt" @click="openReceipt(order)"><i class="fa-solid fa-receipt"></i> Ver comprobante</button>
-              <button class="approve" :disabled="!order.hasTransferReceipt" @click="approveTarget = order"><i class="fa-solid fa-check"></i> Aprobar y enviar correo</button>
+              <span v-else class="no-receipt"><i class="fa-solid fa-triangle-exclamation"></i> El cliente no subió comprobante</span>
+              <button class="approve" @click="approveTarget = order"><i class="fa-solid fa-check"></i> Aprobar y enviar correo</button>
             </template>
           </footer>
         </article>
@@ -345,7 +346,7 @@ onMounted(() => {
         <a class="modal-ghost" :href="detailTarget ? whatsappLink(detailTarget) : '#'" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> Escribir</a>
         <template v-if="detailTarget?.paymentMethod === 'transfer' && detailTarget.status === 'awaiting_transfer'">
           <button v-if="detailTarget.hasTransferReceipt" class="modal-ghost" @click="openReceipt(detailTarget)"><i class="fa-solid fa-receipt"></i> Comprobante</button>
-          <button class="modal-primary" :disabled="!detailTarget.hasTransferReceipt" @click="approveFromDetail(detailTarget)"><i class="fa-solid fa-check"></i> Aprobar</button>
+          <button class="modal-primary" @click="approveFromDetail(detailTarget)"><i class="fa-solid fa-check"></i> Aprobar</button>
         </template>
         <button v-else class="modal-primary" @click="detailTarget = null">Listo</button>
       </template>
@@ -358,6 +359,10 @@ onMounted(() => {
       @close="approvingReference ? null : (approveTarget = null)"
     >
       <p>Vas a marcar el pedido <b>{{ approveTarget?.reference }}</b> como pagado y se enviará automáticamente el correo de confirmación al cliente.</p>
+      <p v-if="!approveTarget?.hasTransferReceipt" class="approve-warning">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>Este pedido <b>no tiene comprobante subido</b>. Confirma en tu banco que entró el depósito de {{ money(approveTarget?.totalCents || 0) }} de {{ approveTarget?.buyer.firstName }} {{ approveTarget?.buyer.lastName }} antes de aprobarlo.</span>
+      </p>
       <ul class="modal-summary">
         <li v-for="item in approveTarget?.items || []" :key="item.productId"><span>{{ item.quantity }} × {{ item.name }}</span><b>{{ money(item.lineTotalCents) }}</b></li>
         <li class="grand"><span>Total</span><b>{{ money(approveTarget?.totalCents || 0) }}</b></li>
@@ -437,6 +442,10 @@ onMounted(() => {
 .modal-primary:hover:not(:disabled),.modal-ghost:hover:not(:disabled) { box-shadow:0 6px 16px rgba(33,30,29,.18);transform:translateY(-1px) }
 .modal-primary:active:not(:disabled),.modal-ghost:active:not(:disabled) { box-shadow:none;transform:translateY(0) scale(.985) }
 .modal-primary:disabled,.modal-ghost:disabled { cursor:not-allowed;opacity:.55;transform:none }
+
+.orders footer .no-receipt { align-items:center;color:#8a6d1f;display:flex;font:600 11px Arial,sans-serif;gap:8px;letter-spacing:.05em;padding:13px 0;text-transform:uppercase }
+.approve-warning { align-items:flex-start;background:#fbf0d6;color:#7b5110;display:flex;font-size:13px;gap:10px;line-height:1.45;margin:16px 0 0;padding:14px }
+.approve-warning i { margin-top:2px }
 
 /* --- Detalle del pedido --- */
 .detail-date { color:#77787B;font-size:12px;margin:0 0 22px }

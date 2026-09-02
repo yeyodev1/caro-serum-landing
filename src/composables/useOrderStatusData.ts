@@ -22,6 +22,12 @@ export function useOrderStatusData() {
   const foundOrders = ref<Order[]>([])
   const selectedSearchOrder = ref<Order | null>(null)
   const lookupMessage = ref('')
+  const lateReceipt = ref<{ name: string; dataUrl: string } | null>(null)
+  const lateReceiptMessage = ref('')
+  const isUploadingLateReceipt = ref(false)
+  // El modal post-compra deja salir con "Lo enviaré más tarde", asi que el pedido
+  // puede quedarse sin comprobante y el equipo sin con que verificar el deposito.
+  const canUploadReceipt = computed(() => order.value?.paymentMethod === 'transfer' && order.value.status === 'awaiting_transfer' && !order.value.hasTransferReceipt)
   const money = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
   const isPayResponse = computed(() => route.path === '/pay-response')
   const paymentFailed = computed(() => isPayResponse.value && order.value?.status !== 'paid' && transaction.value?.statusCode !== 3)
@@ -82,6 +88,55 @@ export function useOrderStatusData() {
       }, { capture: true })
     })
   }
+  async function selectLateReceipt(event: Event) {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
+    if (!file) return
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      lateReceipt.value = null
+      input.value = ''
+      lateReceiptMessage.value = 'Selecciona una imagen JPG, PNG o WEBP de hasta 5 MB.'
+      return
+    }
+    try {
+      lateReceipt.value = {
+        name: file.name,
+        dataUrl: await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(String(reader.result))
+          reader.onerror = () => reject(new Error('No pudimos leer la imagen.'))
+          reader.readAsDataURL(file)
+        }),
+      }
+      lateReceiptMessage.value = ''
+    } catch (error) {
+      lateReceipt.value = null
+      lateReceiptMessage.value = error instanceof Error ? error.message : 'No pudimos leer la imagen.'
+    }
+  }
+
+  async function uploadLateReceipt() {
+    if (!order.value || !lateReceipt.value) return
+    isUploadingLateReceipt.value = true
+    lateReceiptMessage.value = ''
+    try {
+      const response = await fetch(`${api}/orders/${encodeURIComponent(order.value.reference)}/transfer-receipt`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dataUrl: lateReceipt.value.dataUrl }),
+      })
+      const data = await json(response)
+      if (!response.ok) throw new Error(data.message || 'No pudimos enviar el comprobante.')
+      if (data.order) order.value = data.order
+      else if (order.value) order.value = { ...order.value, hasTransferReceipt: true }
+      lateReceipt.value = null
+      lateReceiptMessage.value = 'Comprobante recibido. Verificaremos tu pago y te escribiremos pronto.'
+    } catch (error) {
+      lateReceiptMessage.value = error instanceof Error ? error.message : 'No pudimos enviar el comprobante.'
+    } finally {
+      isUploadingLateReceipt.value = false
+    }
+  }
+
   async function openFoundOrder(reference: string) {
     try {
       const response = await fetch(`${api}/orders/${encodeURIComponent(reference)}`)
@@ -112,6 +167,8 @@ export function useOrderStatusData() {
     order, transaction, message, isLoading, isRetrying, retryOpen, recipientEmail,
     verificationContact, resendMessage, lookupContact, foundOrders, selectedSearchOrder,
     lookupMessage, money, isPayResponse, paymentFailed, statusLabel, whatsappUrl,
+    lateReceipt, lateReceiptMessage, isUploadingLateReceipt, canUploadReceipt,
     loadOrder, retryPayment, resendEmail, lookupOrders, openFoundOrder,
+    selectLateReceipt, uploadLateReceipt,
   }
 }

@@ -1,0 +1,103 @@
+// Tarjeta para enviar el comprobante después de la compra: el modal del checkout
+// deja salir con "Lo enviaré más tarde" y sin esto el pedido se queda sin respaldo.
+.receipt-upload {
+  background: #fffdfa;
+  border: 1px solid #e1d6d0;
+  margin: 34px auto 0;
+  max-width: 1080px;
+  padding: 30px;
+
+  .eyebrow {
+    color: #b86f54;
+    font: 600 10px Arial, sans-serif;
+    letter-spacing: .12em;
+    margin: 0 0 9px;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    font: 600 30px/1.05 Georgia, serif;
+    letter-spacing: -.04em;
+    margin: 0 0 10px;
+  }
+
+  > p {
+    color: #55565A;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+    max-width: 60ch;
+  }
+}
+
+.receipt-drop {
+  align-items: center;
+  background: #F9E3DC;
+  border: 1px dashed #d8a795;
+  cursor: pointer;
+  display: flex;
+  gap: 14px;
+  margin-top: 20px;
+  padding: 18px;
+  transition: background .18s ease, border-color .18s ease;
+
+  &:hover { background: #f6dbd1; border-color: #b86f54; }
+
+  input { display: none; }
+
+  i { color: #b86f54; font-size: 20px; }
+
+  b { display: block; font: 600 13px Arial, sans-serif; }
+
+  small { color: #77787B; display: block; font-size: 11px; margin-top: 3px; }
+}
+
+.receipt-preview-late {
+  background: #f3ece8;
+  margin: 16px 0 0;
+  max-height: 320px;
+  overflow: hidden;
+
+  img { display: block; margin: auto; max-height: 320px; max-width: 100%; }
+}
+
+.receipt-send {
+  align-items: center;
+  background: #1D1D1B;
+  border: 0;
+  color: #fbf7f2;
+  cursor: pointer;
+  display: flex;
+  font: 600 11px Arial, sans-serif;
+  gap: 9px;
+  justify-content: center;
+  letter-spacing: .06em;
+  margin-top: 16px;
+  padding: 15px 18px;
+  text-transform: uppercase;
+  transition: opacity .18s ease, transform .18s ease;
+
+  &:disabled { cursor: not-allowed; opacity: .45; }
+  &:not(:disabled):hover { transform: translateY(-1px); }
+  &:not(:disabled):active { transform: translateY(0) scale(.99); }
+}
+
+.receipt-note {
+  color: #55565A;
+  display: block;
+  font-size: 12px;
+  margin-top: 12px;
+}
+
+.receipt-note.done { color: #216335; }
+
+@media (max-width: 600px) {
+  .receipt-upload { padding: 24px 20px; }
+  .receipt-upload h2 { font-size: 25px; }
+  .receipt-send { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .receipt-drop,
+  .receipt-send { transition: none; }
+}
