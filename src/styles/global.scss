@@ -1,5 +1,6 @@
 @use './colorVariables.module.scss' as *;
 @use './fonts.module.scss' as *;
+@use './admin/motion';
 
 html, body {
   background-color: $white;

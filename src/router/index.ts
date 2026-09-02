@@ -11,19 +11,19 @@ const routes: Array<RouteRecordRaw> = [
     path: '/login',
     name: 'Login',
     component: () => import('../views/AdminLoginView.vue'),
-    meta: { title: 'Acceso administrativo' },
+    meta: { title: 'Acceso administrativo', motion: true },
   },
   {
     path: '/admin',
     name: 'Admin',
     component: () => import('../views/AdminDashboardView.vue'),
-    meta: { title: 'Administracion', requiresAuth: true },
+    meta: { title: 'Administracion', requiresAuth: true, motion: true },
   },
   {
     path: '/admin/users',
     name: 'AdminUsers',
     component: () => import('../views/AdminUsersView.vue'),
-    meta: { title: 'Usuarios administradores', requiresAuth: true },
+    meta: { title: 'Usuarios administradores', requiresAuth: true, motion: true },
   },
   {
     path: '/pay-response',

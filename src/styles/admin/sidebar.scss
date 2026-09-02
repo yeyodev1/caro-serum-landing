@@ -13,8 +13,14 @@ $copper: #b86f54;
   letter-spacing: .06em;
   padding: 10px 12px;
   text-transform: uppercase;
+  transition: background var(--admin-micro) var(--admin-ease),
+    color var(--admin-micro) var(--admin-ease),
+    transform var(--admin-micro) var(--admin-ease);
   width: max-content;
 }
+
+.menu-toggle:hover { background: $ink; color: $cream; }
+.menu-toggle:active { transform: scale(.97); }
 
 .menu-backdrop {
   background: rgba(33, 30, 29, .48);
@@ -23,6 +29,11 @@ $copper: #b86f54;
   position: fixed;
   z-index: 20;
 }
+
+.backdrop-enter-active,
+.backdrop-leave-active { transition: opacity var(--admin-state) var(--admin-ease); }
+.backdrop-enter-from,
+.backdrop-leave-to { opacity: 0; }
 
 aside {
   background: $ink;
@@ -36,7 +47,7 @@ aside {
   position: fixed;
   top: 0;
   transform: translateX(-105%);
-  transition: transform .32s cubic-bezier(.22, 1, .36, 1);
+  transition: transform .32s var(--admin-ease);
   width: min(280px, 82vw);
   z-index: 21;
 }
@@ -80,24 +91,73 @@ nav button,
   width: 100%;
 }
 
+// La barra de la izquierda crece desde el borde al activar la seccion, para que
+// el cambio de vista se lea como movimiento y no como un parpadeo de color.
+nav button {
+  overflow: hidden;
+  position: relative;
+  transition: background var(--admin-micro) var(--admin-ease),
+    transform var(--admin-micro) var(--admin-ease);
+}
+
+nav button::before {
+  background: $copper;
+  bottom: 0;
+  content: '';
+  left: 0;
+  position: absolute;
+  top: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--admin-state) var(--admin-ease);
+  width: 3px;
+}
+
+nav button:hover { background: rgba(255, 255, 255, .07); transform: translateX(3px); }
+nav button:active { transform: translateX(3px) scale(.99); }
 nav button.active { background: $copper; }
+nav button.active::before { background: $cream; transform: scaleX(1); }
+
+nav button,
+.logout { animation: admin-rise-in var(--admin-enter) var(--admin-ease) both; }
+
+nav button:nth-child(1) { animation-delay: 40ms; }
+nav button:nth-child(2) { animation-delay: 80ms; }
+nav button:nth-child(3) { animation-delay: 120ms; }
+nav button:nth-child(4) { animation-delay: 160ms; }
+nav button:nth-child(5) { animation-delay: 200ms; }
+.logout { animation-delay: 240ms; }
 
 nav b {
   background: rgba(255, 255, 255, .16);
   border-radius: 12px;
   padding: 2px 6px;
+  transition: background var(--admin-state) var(--admin-ease);
 }
+
+nav button.active b { background: rgba(0, 0, 0, .22); }
 
 .logout {
   border-top: 1px solid rgba(255, 255, 255, .2);
   justify-content: flex-start;
   margin-top: auto;
   padding-top: 18px;
+  transition: color var(--admin-micro) var(--admin-ease),
+    transform var(--admin-micro) var(--admin-ease);
 }
+
+.logout:hover { color: #d39986; transform: translateX(3px); }
 
 @media (min-width: 1025px) {
   .menu-toggle,
   .menu-backdrop { display: none; }
 
   aside { box-shadow: none; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  aside,
+  nav button,
+  nav button::before,
+  .logout { animation: none; transition: none; }
 }

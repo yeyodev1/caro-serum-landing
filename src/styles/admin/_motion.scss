@@ -1,0 +1,73 @@
+// Sistema de movimiento del panel admin.
+// La curva base es la misma que ya usaba el sidebar, para que todo el panel
+// acelere y frene igual. Duraciones cortas: es una herramienta de trabajo
+// diario, la animacion debe confirmar la accion, no hacer esperar.
+:root {
+  --admin-ink: #1D1D1B;
+  --admin-cream: #fbf7f2;
+  --admin-pink: #F1B9A9;
+  --admin-pink-soft: #F9E3DC;
+  --admin-copper: #b86f54;
+  --admin-line: #e1d6d0;
+
+  --admin-ease: cubic-bezier(.22, 1, .36, 1);
+  --admin-ease-in: cubic-bezier(.4, 0, 1, 1);
+  --admin-micro: 140ms;
+  --admin-state: 220ms;
+  --admin-enter: 340ms;
+  --admin-view: 240ms;
+  --admin-stagger: 55ms;
+}
+
+@keyframes admin-rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes admin-shimmer {
+  to { background-position: -140% 0; }
+}
+
+@keyframes admin-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes admin-nudge {
+  10%, 90% { transform: translateX(-3px); }
+  30%, 70% { transform: translateX(3px); }
+  50% { transform: translateX(-2px); }
+}
+
+// Cambio de ruta: solo opacidad. El panel tiene sidebar y toast en position
+// fixed, y transformar el contenedor los sacaria de su marco de referencia.
+.view-enter-active { transition: opacity var(--admin-view) var(--admin-ease); }
+.view-leave-active { transition: opacity 160ms var(--admin-ease-in); }
+.view-enter-from,
+.view-leave-to { opacity: 0; }
+
+// Modales: el fondo funde y la tarjeta sube apenas, igual que en la landing.
+.admin-modal-enter-active,
+.admin-modal-leave-active { transition: opacity var(--admin-state) var(--admin-ease); }
+.admin-modal-enter-active .admin-modal-card { transition: transform var(--admin-enter) var(--admin-ease), opacity var(--admin-enter) var(--admin-ease); }
+.admin-modal-leave-active .admin-modal-card { transition: transform 160ms var(--admin-ease-in), opacity 160ms var(--admin-ease-in); }
+.admin-modal-enter-from,
+.admin-modal-leave-to { opacity: 0; }
+.admin-modal-enter-from .admin-modal-card,
+.admin-modal-leave-to .admin-modal-card { opacity: 0; transform: translateY(18px) scale(.98); }
+
+.admin-skeleton {
+  background: linear-gradient(100deg, #efe6e1 30%, #f8f2ee 45%, #efe6e1 60%) 100% 0 / 240% 100%;
+  animation: admin-shimmer 1.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --admin-micro: 1ms;
+    --admin-state: 1ms;
+    --admin-enter: 1ms;
+    --admin-view: 1ms;
+    --admin-stagger: 0ms;
+  }
+
+  .admin-skeleton { animation: none; }
+}
