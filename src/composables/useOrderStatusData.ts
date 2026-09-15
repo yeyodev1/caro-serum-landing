@@ -32,7 +32,7 @@ export function useOrderStatusData() {
   const isPayResponse = computed(() => route.path === '/pay-response')
   const paymentFailed = computed(() => isPayResponse.value && order.value?.status !== 'paid' && transaction.value?.statusCode !== 3)
   const statusLabel = computed(() => paymentFailed.value ? 'Pago no completado' : order.value?.status === 'paid' ? 'Pago confirmado' : order.value?.status === 'awaiting_transfer' ? 'Esperando transferencia' : 'Pago pendiente')
-  const whatsappUrl = computed(() => order.value ? `https://wa.me/593998655256?text=${encodeURIComponent(`Hola OMG Lashes, necesito ayuda con mi pedido ${order.value.reference}. Estado: ${statusLabel.value}. NO CAMBIES ESTE MENSAJE para que podamos atenderte más rápido.`)}` : '#')
+  const whatsappUrl = computed(() => order.value ? `https://wa.me/593995906544?text=${encodeURIComponent(`Hola OMG Lashes, necesito ayuda con mi pedido ${order.value.reference}. Estado: ${statusLabel.value}. NO CAMBIES ESTE MENSAJE para que podamos atenderte más rápido.`)}` : '#')
 
   async function json(response: Response) { return response.json() as Promise<{ order?: Order; orders?: Order[]; transaction?: { statusCode: number | null; status: string }; payphone?: Payphone; message?: string; recipient?: string }> }
   async function loadOrder() {
@@ -150,7 +150,7 @@ export function useOrderStatusData() {
       if (!modal?.querySelector('.order-detail-whatsapp')) {
         const support = document.createElement('a')
         support.className = 'order-detail-whatsapp'
-        support.href = `https://wa.me/593998655256?text=${encodeURIComponent(`Hola OMG Lashes, necesito ayuda con mi pedido ${data.order.reference}. Pago: ${data.order.paymentMethod === 'payphone' ? 'PayPhone' : 'Transferencia'}. Estado: ${data.order.status === 'paid' ? 'Pagado' : data.order.status === 'awaiting_transfer' ? 'Esperando transferencia' : 'Pago pendiente'}. NO CAMBIES ESTE MENSAJE para una atención más rápida.`)}`
+        support.href = `https://wa.me/593995906544?text=${encodeURIComponent(`Hola OMG Lashes, necesito ayuda con mi pedido ${data.order.reference}. Pago: ${data.order.paymentMethod === 'payphone' ? 'PayPhone' : 'Transferencia'}. Estado: ${data.order.status === 'paid' ? 'Pagado' : data.order.status === 'awaiting_transfer' ? 'Esperando transferencia' : 'Pago pendiente'}. NO CAMBIES ESTE MENSAJE para una atención más rápida.`)}`
         support.target = '_blank'
         support.rel = 'noreferrer'
         support.innerHTML = '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i><span><b>¿Necesitas ayuda?</b><small>Escríbenos por WhatsApp</small></span><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>'

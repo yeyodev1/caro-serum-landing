@@ -2,7 +2,7 @@ import type { Order } from '@/types/order-status'
 
 // Tarjetas que se añaden al DOM sobre la ficha del pedido: soporte por WhatsApp
 // y el aviso de facturación. Reciben el pedido ya cargado.
-const WHATSAPP_PHONE = '593998655256'
+const WHATSAPP_PHONE = '593995906544'
 
 function whatsappLink(order: Order, statusLabel: string) {
   const text = `Hola OMG Lashes, necesito ayuda con mi pedido ${order.reference}. Estado: ${statusLabel}. NO CAMBIES ESTE MENSAJE para que podamos atenderte más rápido.`

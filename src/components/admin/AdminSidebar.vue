@@ -35,7 +35,7 @@ defineExpose({ isOpen })
         <span><i class="fa-solid fa-building-columns"></i> Transferencias</span><b v-if="props.counts">{{ props.counts.transfers }}</b>
       </button>
       <button :class="{ active: props.active === 'pending' }" @click="go('pending')">
-        <span><i class="fa-solid fa-clock"></i> PayPhone pendientes</span><b v-if="props.counts">{{ props.counts.pending }}</b>
+        <span><i class="fa-solid fa-clock"></i> PayPhone sin completar</span><b v-if="props.counts">{{ props.counts.pending }}</b>
       </button>
       <button :class="{ active: props.active === 'paid' }" @click="go('paid')">
         <span><i class="fa-solid fa-circle-check"></i> Pagados</span><b v-if="props.counts">{{ props.counts.paid }}</b>

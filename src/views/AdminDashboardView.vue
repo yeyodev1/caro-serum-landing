@@ -17,7 +17,7 @@ type Order = {
   subtotalCents: number
   shippingCents: number
   totalCents: number
-  buyer: { firstName: string; lastName: string; email: string; phone: string }
+  buyer: { firstName: string; lastName: string; email: string; phone: string; identification?: string }
   delivery: { province: string; city: string; address: string; reference: string; googleMapsUrl?: string }
   invoice?: Invoice | null
   hasTransferReceipt: boolean
@@ -49,7 +49,17 @@ const itemImage = (item: OrderItem) => (catalogById[item.productId]?.image || ''
 const itemCount = (order: Order) => order.items.reduce((total, item) => total + item.quantity, 0)
 // Transferencia sin respaldo: no se puede verificar en el panel, solo en el banco.
 const needsReceipt = (order: Order) => order.paymentMethod === 'transfer' && order.status === 'awaiting_transfer' && !order.hasTransferReceipt
-const statusLabel = (status: Order['status']) => status === 'paid' ? 'PAGADO' : status === 'awaiting_transfer' ? 'TRANSFERENCIA POR REVISAR' : status === 'cancelled' ? 'CANCELADO' : 'PAGO PENDIENTE'
+const statusLabel = (status: Order['status']) => status === 'paid' ? 'PAGADO' : status === 'awaiting_transfer' ? 'TRANSFERENCIA POR REVISAR' : status === 'cancelled' ? 'DESCARTADO' : 'NO COMPLETÓ EL PAGO'
+
+// Cada vez que la clienta vuelve a abrir PayPhone se crea un pedido nuevo; los intentos
+// que abandonó quedan pendientes. Si luego pagó otro pedido, ese intento ya no cuenta.
+function paidLater(order: Order) {
+  if (order.status !== 'pending_payphone') return null
+  const created = new Date(order.createdAt).getTime()
+  return orders.value.find((other) => other.status === 'paid'
+    && new Date(other.createdAt).getTime() >= created
+    && (other.buyer.email === order.buyer.email || other.buyer.phone === order.buyer.phone)) || null
+}
 
 function formatPhone(phone: string) {
   const local = phone.replace(/\D/g, '').replace(/^593/, '')
@@ -57,7 +67,8 @@ function formatPhone(phone: string) {
 }
 
 const visibleOrders = computed(() => orders.value.filter((order) => section.value === 'all' || (section.value === 'transfers' && order.paymentMethod === 'transfer' && order.status === 'awaiting_transfer') || (section.value === 'pending' && order.status === 'pending_payphone') || (section.value === 'paid' && order.status === 'paid')))
-const counts = computed(() => ({ transfers: orders.value.filter((order) => order.paymentMethod === 'transfer' && order.status === 'awaiting_transfer').length, pending: orders.value.filter((order) => order.status === 'pending_payphone').length, paid: orders.value.filter((order) => order.status === 'paid').length }))
+const counts = computed(() => ({ transfers: orders.value.filter((order) => order.paymentMethod === 'transfer' && order.status === 'awaiting_transfer').length, pending: orders.value.filter((order) => order.status === 'pending_payphone' && !paidLater(order)).length, paid: orders.value.filter((order) => order.status === 'paid').length }))
+const discardingReference = ref('')
 const missingReceipts = computed(() => orders.value.filter(needsReceipt).length)
 
 function headers() { return { Authorization: `Bearer ${localStorage.getItem('access_token') || ''}`, 'Content-Type': 'application/json' } }
@@ -75,6 +86,7 @@ function shippingSummary(order: Order) {
   const lines = [
     `Pedido ${order.reference}`,
     `Cliente: ${order.buyer.firstName} ${order.buyer.lastName}`,
+    `Cédula/RUC: ${order.buyer.identification || order.invoice?.identification || '-'}`,
     `WhatsApp: ${formatPhone(order.buyer.phone)}`,
     `Correo: ${order.buyer.email}`,
     `Ciudad: ${order.delivery.city}, ${order.delivery.province}`,
@@ -138,14 +150,30 @@ async function confirmApprove() {
   try {
     const response = await fetch(`${api}/orders/admin/${encodeURIComponent(order.reference)}/status`, { method: 'PATCH', headers: headers(), body: JSON.stringify({ status: 'paid' }) })
     const data = await response.json() as { message?: string }
-    if (!response.ok) throw new Error(data.message || 'No pudimos aprobar la transferencia.')
+    if (!response.ok) throw new Error(data.message || 'No pudimos aprobar el pago.')
     order.status = 'paid'
     approveTarget.value = null
-    notify('Transferencia aprobada. Se envió el correo de confirmación al cliente.')
+    notify('Pago aprobado. Se envió el correo de confirmación al cliente.')
   } catch (error) {
-    notify(error instanceof Error ? error.message : 'No pudimos aprobar la transferencia.')
+    notify(error instanceof Error ? error.message : 'No pudimos aprobar el pago.')
   } finally {
     approvingReference.value = ''
+  }
+}
+
+// Descartar saca un intento abandonado de PayPhone de la lista sin escribirle al cliente.
+async function discardAttempt(order: Order) {
+  discardingReference.value = order.reference
+  try {
+    const response = await fetch(`${api}/orders/admin/${encodeURIComponent(order.reference)}/status`, { method: 'PATCH', headers: headers(), body: JSON.stringify({ status: 'cancelled' }) })
+    const data = await response.json() as { message?: string }
+    if (!response.ok) throw new Error(data.message || 'No pudimos descartar el intento.')
+    order.status = 'cancelled'
+    notify('Intento descartado.')
+  } catch (error) {
+    notify(error instanceof Error ? error.message : 'No pudimos descartar el intento.')
+  } finally {
+    discardingReference.value = ''
   }
 }
 
@@ -192,10 +220,15 @@ onMounted(() => {
 
       <div class="stats">
         <span><b>{{ counts.transfers }}</b> transferencias por aprobar</span>
-        <span><b>{{ counts.pending }}</b> pagos PayPhone pendientes</span>
+        <span><b>{{ counts.pending }}</b> PayPhone sin completar</span>
         <span><b>{{ counts.paid }}</b> pagos confirmados</span>
         <span v-if="missingReceipts" class="stat-alert"><i class="fa-solid fa-triangle-exclamation"></i><b>{{ missingReceipts }}</b> sin comprobante</span>
       </div>
+
+      <p v-if="section === 'pending'" class="pending-explainer">
+        <i class="fa-solid fa-circle-info"></i>
+        <span><b>Aquí no hay ventas por cobrar.</b> Son clientas que llegaron a PayPhone pero no terminaron de pagar con tarjeta (cerraron la ventana o la tarjeta fue rechazada). No tienes que confirmar nada: cuando PayPhone aprueba un pago, el pedido pasa solo a <b>Pagados</b>. Si en tu app de PayPhone ves aprobado un pedido que sigue aquí, usa <b>Marcar como pagado</b>.</span>
+      </p>
 
       <div v-if="isLoading" class="orders skeletons">
         <article v-for="placeholder in 3" :key="placeholder" :style="{ '--i': placeholder - 1 }">
@@ -211,7 +244,7 @@ onMounted(() => {
       </Transition>
 
       <TransitionGroup v-if="!isLoading" name="order" tag="div" class="orders">
-        <article v-for="(order, index) in visibleOrders" :key="order.reference" :class="{ 'needs-receipt': needsReceipt(order) }" :style="{ '--i': Math.min(index, 7) }">
+        <article v-for="(order, index) in visibleOrders" :key="order.reference" :class="{ 'needs-receipt': needsReceipt(order), superseded: paidLater(order) }" :style="{ '--i': Math.min(index, 7) }">
           <div class="order-head">
             <div>
               <small>{{ new Date(order.createdAt).toLocaleString('es-EC') }}</small>
@@ -252,6 +285,7 @@ onMounted(() => {
             <p>
               <b>Cliente</b>
               {{ order.buyer.firstName }} {{ order.buyer.lastName }}
+              <span v-if="order.buyer.identification || order.invoice?.identification">CI/RUC {{ order.buyer.identification || order.invoice?.identification }}</span>
               <a :href="`https://wa.me/${order.buyer.phone.replace(/\D/g, '')}`" target="_blank" rel="noopener noreferrer">{{ formatPhone(order.buyer.phone) }}</a>
               <a :href="`mailto:${order.buyer.email}`">{{ order.buyer.email }}</a>
             </p>
@@ -284,6 +318,15 @@ onMounted(() => {
             <span><b>El cliente no subió el comprobante.</b> Verifica en tu banco que entró el depósito de {{ money(order.totalCents) }} de {{ order.buyer.firstName }} {{ order.buyer.lastName }} antes de aprobar este pedido.</span>
           </p>
 
+          <p v-if="paidLater(order)" class="pending-note paid-later">
+            <i class="fa-solid fa-circle-check"></i>
+            <span><b>Esta clienta ya pagó en otro intento</b> ({{ paidLater(order)!.reference }}). Este pedido quedó abierto y puedes descartarlo.</span>
+          </p>
+          <p v-else-if="order.status === 'pending_payphone'" class="pending-note">
+            <i class="fa-solid fa-hourglass-half"></i>
+            <span><b>No completó el pago con tarjeta.</b> No se cobró nada. Puedes escribirle para ayudarla a terminar la compra.</span>
+          </p>
+
           <footer>
             <button class="detail" @click="detailTarget = order"><i class="fa-solid fa-eye"></i> Ver pedido</button>
             <a :href="whatsappLink(order)" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> Contactar cliente</a>
@@ -291,6 +334,12 @@ onMounted(() => {
             <template v-if="order.paymentMethod === 'transfer' && order.status === 'awaiting_transfer'">
               <button v-if="order.hasTransferReceipt" class="receipt" @click="openReceipt(order)"><i class="fa-solid fa-receipt"></i> Ver comprobante</button>
               <button class="approve" @click="approveTarget = order"><i class="fa-solid fa-check"></i> Aprobar y enviar correo</button>
+            </template>
+            <template v-if="order.status === 'pending_payphone'">
+              <button v-if="!paidLater(order)" class="copy" @click="approveTarget = order"><i class="fa-solid fa-check"></i> Marcar como pagado</button>
+              <button class="copy" :disabled="discardingReference === order.reference" @click="discardAttempt(order)">
+                <i class="fa-solid" :class="discardingReference === order.reference ? 'fa-circle-notch spinning' : 'fa-trash-can'"></i> Descartar intento
+              </button>
             </template>
           </footer>
         </article>
@@ -336,6 +385,7 @@ onMounted(() => {
           <div>
             <h3>Cliente</h3>
             <p>{{ detailTarget.buyer.firstName }} {{ detailTarget.buyer.lastName }}</p>
+            <p v-if="detailTarget.buyer.identification || detailTarget.invoice?.identification">CI/RUC {{ detailTarget.buyer.identification || detailTarget.invoice?.identification }}</p>
             <p><a :href="`https://wa.me/${detailTarget.buyer.phone.replace(/\D/g, '')}`" target="_blank" rel="noopener noreferrer">{{ formatPhone(detailTarget.buyer.phone) }}</a></p>
             <p><a :href="`mailto:${detailTarget.buyer.email}`">{{ detailTarget.buyer.email }}</a></p>
           </div>
@@ -369,12 +419,16 @@ onMounted(() => {
 
     <AdminModal
       :open="Boolean(approveTarget)"
-      eyebrow="Confirmar transferencia"
+      :eyebrow="approveTarget?.paymentMethod === 'payphone' ? 'Confirmar pago PayPhone' : 'Confirmar transferencia'"
       :title="`Aprobar ${approveTarget?.buyer.firstName || ''} ${approveTarget?.buyer.lastName || ''}`.trim() + '.'"
       @close="approvingReference ? null : (approveTarget = null)"
     >
       <p>Vas a marcar el pedido <b>{{ approveTarget?.reference }}</b> como pagado y se enviará automáticamente el correo de confirmación al cliente.</p>
-      <p v-if="!approveTarget?.hasTransferReceipt" class="approve-warning">
+      <p v-if="approveTarget?.paymentMethod === 'payphone'" class="approve-warning">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>Hazlo solo si en tu app de PayPhone ves <b>aprobado</b> un pago de {{ money(approveTarget.totalCents) }} con la referencia <b>{{ approveTarget.reference }}</b>.</span>
+      </p>
+      <p v-else-if="!approveTarget?.hasTransferReceipt" class="approve-warning">
         <i class="fa-solid fa-triangle-exclamation"></i>
         <span>Este pedido <b>no tiene comprobante subido</b>. Confirma en tu banco que entró el depósito de {{ money(approveTarget?.totalCents || 0) }} de {{ approveTarget?.buyer.firstName }} {{ approveTarget?.buyer.lastName }} antes de aprobarlo.</span>
       </p>
@@ -458,6 +512,12 @@ onMounted(() => {
 .modal-primary:active:not(:disabled),.modal-ghost:active:not(:disabled) { box-shadow:none;transform:translateY(0) scale(.985) }
 .modal-primary:disabled,.modal-ghost:disabled { cursor:not-allowed;opacity:.55;transform:none }
 
+.pending-explainer { align-items:flex-start;background:#eef3f7;border-left:3px solid #4a6b86;color:#2d4456;display:flex;font-size:13px;gap:11px;line-height:1.5;margin:0 0 20px;padding:14px 16px }
+.pending-explainer i { font-size:15px;margin-top:2px }
+.pending-note { align-items:flex-start;background:#f6f1ec;color:#55565A;display:flex;font-size:13px;gap:10px;line-height:1.45;margin:18px 0 0;padding:12px 14px }
+.pending-note i { margin-top:2px }
+.pending-note.paid-later { background:#e4f1e7;color:#216335 }
+.orders article.superseded { opacity:.72 }
 .approve-warning { align-items:flex-start;background:#fbf0d6;color:#7b5110;display:flex;font-size:13px;gap:10px;line-height:1.45;margin:16px 0 0;padding:14px }
 /* Sin comprobante no hay nada que revisar en el panel: se avisa en la lista, en
    la cabecera de la tarjeta y sobre los botones, para que no pase inadvertido. */

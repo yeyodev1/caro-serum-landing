@@ -11,7 +11,7 @@ export const checkoutError = ref('')
 export const isSubmitting = ref(false)
 export const paymentMethod = ref<PaymentMethod>('payphone')
 
-export const buyer = ref({ firstName: '', lastName: '', email: '', phone: '' })
+export const buyer = ref({ firstName: '', lastName: '', email: '', phone: '', identification: '' })
 export const delivery = ref({ country: 'Ecuador', province: '', city: '', address: '', reference: '' })
 export const invoice = ref({ identification: '', firstName: '', lastName: '', email: '', address: '' })
 
@@ -79,6 +79,7 @@ export function useCheckout() {
 
   function openInvoiceOnboarding() {
     if (!shouldCollectInvoice.value || invoiceCompleted.value) return
+    invoice.value.identification ||= buyer.value.identification
     invoice.value.firstName ||= buyer.value.firstName
     invoice.value.lastName ||= buyer.value.lastName
     invoice.value.email ||= buyer.value.email

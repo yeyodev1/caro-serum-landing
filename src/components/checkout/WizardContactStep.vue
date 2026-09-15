@@ -15,6 +15,13 @@ const { normalizedWhatsApp } = useCheckout()
       </div>
       <label>Correo electrónico<input v-model.trim="buyer.email" required type="email" autocomplete="email"></label>
       <label>
+        Cédula o RUC
+        <input
+          v-model.trim="buyer.identification" required inputmode="numeric"
+          minlength="10" maxlength="13" pattern="[0-9]{10}|[0-9]{13}" placeholder="Ej. 0912345678"
+          title="Cédula de 10 dígitos o RUC de 13 dígitos">
+      </label>
+      <label>
         WhatsApp
         <input
           v-model.trim="buyer.phone" required type="tel" inputmode="tel" autocomplete="tel"
