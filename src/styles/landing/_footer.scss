@@ -17,9 +17,20 @@ footer>a {
 }
 footer small {
   border-top:1px solid rgba(33,30,29,.3);
+  display:flex;
+  flex-wrap:wrap;
   font:9px 'DM Mono',monospace;
+  gap:8px 20px;
   grid-column:span 2;
+  justify-content:space-between;
   padding-top:15px;
+}
+footer .footer-credit {
+  color:var(--ink);
+  font-weight:500;
+  letter-spacing:.08em;
+  text-decoration:underline;
+  text-transform:uppercase;
 }
 footer .footer-links {
   display:flex;

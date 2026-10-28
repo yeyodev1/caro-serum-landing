@@ -14,7 +14,11 @@ export const cld = (id: string, w: number) =>
 // slide 1 · collage del hero, completo y cuadrado como en el PPT (original 1254x1254).
 // El marco es cuadrado a propósito: así entra el collage entero (las dos fotos y el
 // panel del producto) sin cortar el texto impreso.
-export const heroCollage = cld('efca4834-7822-4a7c-97d9-e9bad1d47391', 1254)
+// Desde oct 2026 vive en `public/hero/`: Carolina pidió cambiar el título impreso
+// ("SERUM FORTALECEDOR...") por "Pestañas y cejas más largas y abundantes en 28 días",
+// así que se editó el original de Cloudinary (omglashes/landing-v2/efca4834-…) con
+// Playfair Display y el mismo salmón del texto, y ya lleva el +8 de brillo aplicado.
+export const heroCollage = '/hero/hero-collage.jpg'
 // slide 5 · 10 ml + 5 ml (original 1254x1254)
 export const comboDobleImage = cld('ChatGPT_Image_6_ago_2026_12_41_38_a.m.', 1254)
 // slide 5 · trío con delineador (original 1536x1024)

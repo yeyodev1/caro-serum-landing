@@ -59,10 +59,12 @@ onBeforeUnmount(() => {
     <HeroSection />
     <BenefitsMarquee />
     <TrustBar />
+    <!-- Pedido de Carolina (deck "cambios en la pagina", oct 2026): primero lo que se
+         vende y recién después los testimonios y el resto. -->
+    <CombosSection />
     <ResultsSection />
     <QuoteBanner />
     <ComparisonSection />
-    <CombosSection />
     <HowToSection />
     <ConstancySection />
     <CommunitySection />

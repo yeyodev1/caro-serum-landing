@@ -29,6 +29,28 @@
   transition:filter .55s,opacity .55s;
   width:100%;
 }
+// Rótulos sobre las dos fotos de la izquierda del collage (arriba: antes; abajo:
+// después). Van en porcentaje del marco cuadrado, en la esquina inferior izquierda
+// de cada foto, igual que los marcó Carolina en el deck.
+.photo-frame {
+  container-type:inline-size;
+}
+.photo-tag {
+  background:var(--ink);
+  color:var(--cream);
+  font:500 clamp(9px,1.9cqw,12px)/1 'DM Mono',monospace;
+  left:5.5%;
+  letter-spacing:.14em;
+  padding:.55em .9em .5em;
+  position:absolute;
+  z-index:2;
+}
+.tag-before {
+  top:40%;
+}
+.tag-after {
+  top:85%;
+}
 .sunburst {
   background:repeating-conic-gradient(from 22deg,var(--pink) 0deg 6deg,transparent 6deg 17deg);
   border-radius:50%;

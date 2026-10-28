@@ -34,10 +34,18 @@ const { imageLoaded, markImageLoaded } = useImageLoad()
       <div class="sunburst"></div>
       <div class="hero-note note-top">FÓRMULA ALTA EFICACIA<br>SIN EFECTOS SECUNDARIOS</div>
       <div class="photo-frame" :class="{ loaded: imageLoaded(heroCollage) }">
-        <img :src="heroCollage" alt="OMG Lashes Sérum para cejas y pestañas" fetchpriority="high" @load="markImageLoaded(heroCollage)">
+        <img :src="heroCollage" alt="Antes y después de usar OMG Lashes: pestañas y cejas más largas y abundantes en 28 días" fetchpriority="high" @load="markImageLoaded(heroCollage)">
+        <!-- Las dos fotos de la izquierda del collage son el antes y el después de una
+             clienta; Carolina pidió rotularlas. El marco es cuadrado y la imagen también,
+             así que los porcentajes caen siempre sobre la misma foto. -->
+        <span class="photo-tag tag-before">ANTES</span>
+        <span class="photo-tag tag-after">DESPUÉS</span>
       </div>
       <div class="hero-note note-bottom">RESULTADOS EN 28 DÍAS</div>
-      <div class="circle-stamp">EL SÉRUM<br><b>#1 EN</b><br>ECUADOR</div>
+      <!-- Todo el texto va en un solo <span>: el sello es flex y, sueltos, cada trozo
+           de texto era un ítem aparte que se ponía al lado del otro y se leía
+           "EL #1 SÉRUMEN ECUADOR". -->
+      <div class="circle-stamp"><span>EL SÉRUM<br><b>#1 EN</b><br>ECUADOR</span></div>
     </div>
   </section>
 </template>

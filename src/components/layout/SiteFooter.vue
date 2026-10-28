@@ -10,6 +10,9 @@ import { instagramUrl } from '@/config/catalog'
       <a :href="instagramUrl" target="_blank" rel="noreferrer">@omglashes.ec ↗</a>
       <a href="/order-status">Estado de mi pedido</a>
     </div>
-    <small>© 2026 OMG Lashes. Todos los derechos reservados.</small>
+    <small>
+      <span>© 2026 OMG Lashes. Todos los derechos reservados.</span>
+      <a class="footer-credit" href="https://bakano.ec" target="_blank" rel="noreferrer">Creado por Bakano ↗</a>
+    </small>
   </footer>
 </template>
