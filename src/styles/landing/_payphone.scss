@@ -68,9 +68,11 @@
   .payphone-gateway {
     margin:18px;
     max-height:calc(100dvh - 36px);
-    padding:38px 24px;
+    padding:26px 20px;
   }
+  // Título más chico en celular para que la cajita entre en pantalla sin hacer scroll.
   .payphone-gateway h2 {
-    font-size:45px;
+    font-size:32px;
+    margin:12px 0 16px;
   }
 }

@@ -16,7 +16,7 @@ const { totalCents } = useCart()
           <span>Total a pagar</span><b>{{ formatPrice(totalCents) }}</b>
         </div>
         <p class="payphone-gateway-copy">
-          Ingresa los datos directamente en la Cajita de PayPhone. Tu pedido se confirmará al aprobar el pago.
+          Tus datos de contacto ya van cargados: solo elige tarjeta o PayPhone y paga. Tu pedido se confirma apenas se aprueba el pago.
         </p>
         <div id="payphone-gateway-button"></div>
         <button class="payphone-cancel" type="button" @click="isPayphoneGatewayOpen = false">Cancelar pago</button>

@@ -39,12 +39,12 @@ export function renderPayPhoneBox(
   fallbackReference: string,
 ) {
   if (!window.PPaymentButtonBox) throw new Error('El botón de pago no está disponible.')
+  // El spread lleva también teléfono, correo y cédula de la compradora (los manda el
+  // backend) para que la Cajita no se los vuelva a pedir. Montos en centavos, como pide PayPhone.
   new window.PPaymentButtonBox({
-    token: payphone.token,
-    storeId: payphone.storeId,
-    clientTransactionId: payphone.clientTransactionId,
-    amount: payphone.amount ?? totalCents / 100,
-    amountWithoutTax: payphone.amountWithoutTax ?? totalCents / 100,
+    ...payphone,
+    amount: payphone.amount ?? totalCents,
+    amountWithoutTax: payphone.amountWithoutTax ?? totalCents,
     currency: payphone.currency || 'USD',
     reference: payphone.reference || fallbackReference,
     lang: 'es',
